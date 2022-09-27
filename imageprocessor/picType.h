@@ -2,7 +2,7 @@
 #define PICTYPE_H
 
 enum picType{
-    NORMAL, BMP, _FT, _EQUAL,
+    NORMAL, BMP, _FT, _EQUAL, _COLOREQUAL,
 };
 
 #endif // PICTYPE_H

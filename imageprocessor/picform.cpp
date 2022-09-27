@@ -19,10 +19,12 @@
 using namespace std;
 using namespace cv;
 
+//构造函数
 picForm::picForm(QString path, int type,  QWidget *parent) :
     QWidget(parent),
     ui(new Ui::picForm)
 {
+    //防止编码不一致导致的显示问题
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");    //获取系统编码
     QTextCodec::setCodecForLocale(codec);
 
@@ -34,7 +36,7 @@ picForm::picForm(QString path, int type,  QWidget *parent) :
         m_type = NORMAL;
         m_show();
         setWindowTitle("原图像");
-
+        //显示界面
         ui->setupUi(this);
         break;
     }
@@ -51,6 +53,8 @@ picForm::picForm(QString path, int type,  QWidget *parent) :
     {
         m_type = _FT;
         this->frequencyFiltering();
+        //直接进行变化，由imshow进行图像显示
+
         break;
     }
     case 3:
@@ -59,6 +63,12 @@ picForm::picForm(QString path, int type,  QWidget *parent) :
         this->_equalize();
 
        // ui->setupUi(this);
+        break;
+    }
+    case 4:
+    {
+        m_type = _COLOREQUAL;
+        this->_equalize2();
         break;
     }
     default:
@@ -144,6 +154,7 @@ void picForm::getBitsForBMP(){
 
 cv::Mat picForm::FT(cv::Mat &srcImage){
     Mat paddingImage;
+
     int m = cv::getOptimalDFTSize(srcImage.rows);
     int n = cv::getOptimalDFTSize(srcImage.cols);
 
@@ -174,6 +185,7 @@ cv::Mat picForm::getMagnitudeImage(const cv::Mat &fourierImage){
         return magImage;
 }
 
+//中心化
 cv::Mat picForm::changeCenter(const cv::Mat &magImage){
     int centerX = magImage.cols / 2;
         int centerY = magImage.rows / 2;
@@ -260,6 +272,38 @@ void picForm::_equalize(){
     namedWindow(OUTPUT_T, CV_WINDOW_AUTOSIZE);
 
     imshow(INPUT_T, src);
+    imshow(OUTPUT_T, dst);
+}
+
+void picForm::_equalize2(){
+    Mat src, dst, dst1;
+    src = cv::imread(filepath.toStdString());
+    if(!src.data){
+        QMessageBox::critical(this, tr("错误"), tr("文件打开失败！"),
+                              QMessageBox::Save | QMessageBox::Discard, QMessageBox::Discard);
+        return;
+    }
+    char INPUT_T[] = "input image";
+    char OUTPUT_T[] = "result image";
+
+    namedWindow(INPUT_T, CV_WINDOW_AUTOSIZE);
+    namedWindow(OUTPUT_T, CV_WINDOW_AUTOSIZE);
+
+    imshow(INPUT_T, src);
+
+    vector<Mat> Channels;
+    split(src, Channels);
+
+    Mat b,g,r;
+    b = Channels.at(0);
+    g = Channels.at(1);
+    r = Channels.at(2);
+
+    equalizeHist(b, b);
+    equalizeHist(g, g);
+    equalizeHist(r, r);
+
+    merge(Channels, dst);
     imshow(OUTPUT_T, dst);
 }
 

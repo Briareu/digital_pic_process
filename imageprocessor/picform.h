@@ -22,15 +22,20 @@ class picForm : public QWidget
 
 public:
     explicit picForm(QString path = nullptr, int typr = 0, QWidget *parent = nullptr);
+
     void m_show();
     void getBitsForBMP();
+
     cv::Mat FT(cv::Mat &srcImage);
     cv::Mat getMagnitudeImage(const cv::Mat &fourierImage);
     cv::Mat changeCenter(const cv::Mat &magImage);
     cv::Mat getPhaseImage(const cv::Mat &fourierImage);
     void frequencyFiltering();
     cv::Mat inverseFT(const cv::Mat &fourier);
-    void _equalize();
+
+    void _equalize();//black-and-white picture
+    void _equalize2();//colorful
+
     ~picForm();
     QString filepath;
     picType m_type;

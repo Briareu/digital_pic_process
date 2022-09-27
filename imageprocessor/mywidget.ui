@@ -29,7 +29,7 @@
   <widget class="QPushButton" name="m_bmp">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>180</x>
      <y>120</y>
      <width>93</width>
      <height>28</height>
@@ -42,7 +42,7 @@
   <widget class="QPushButton" name="FT_btn">
    <property name="geometry">
     <rect>
-     <x>240</x>
+     <x>320</x>
      <y>120</y>
      <width>93</width>
      <height>28</height>
@@ -55,14 +55,27 @@
   <widget class="QPushButton" name="equal_btn">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>120</y>
+     <x>80</x>
+     <y>190</y>
      <width>93</width>
      <height>28</height>
     </rect>
    </property>
    <property name="text">
-    <string>equalize</string>
+    <string>equalize1</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="equal_btn2">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>190</y>
+     <width>93</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>equalize2</string>
    </property>
   </widget>
  </widget>

@@ -32,6 +32,8 @@ private slots:
 
     void on_equal_btn_clicked();
 
+    void on_equal_btn2_clicked();
+
 private:
     Ui::myWidget *ui;
 };

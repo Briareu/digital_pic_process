@@ -47,3 +47,9 @@ void myWidget::on_equal_btn_clicked()
     QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg");
     picForm *p = new picForm(filepath, 3);
 }
+
+void myWidget::on_equal_btn2_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg");
+    picForm *p = new picForm(filepath, 4);
+}
