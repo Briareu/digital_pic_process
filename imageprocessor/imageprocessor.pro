@@ -9,16 +9,19 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    input.cpp \
     main.cpp \
     mywidget.cpp \
     picform.cpp
 
 HEADERS += \
+    input.h \
     mywidget.h \
     picType.h \
     picform.h
 
 FORMS += \
+    input.ui \
     mywidget.ui \
     picform.ui
 

@@ -2,6 +2,7 @@
 #include "ui_mywidget.h"
 #include <QFileDialog>
 #include "picform.h"
+#include "input.h"
 
 myWidget::myWidget(QWidget *parent)
     : QWidget(parent)
@@ -52,4 +53,17 @@ void myWidget::on_equal_btn2_clicked()
 {
     QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg");
     picForm *p = new picForm(filepath, 4);
+}
+
+void myWidget::on_rotate_btn_clicked()
+{
+    QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp");
+    picForm *p = new picForm(filepath, 5);
+}
+
+void myWidget::on_scale_btn_clicked()
+{
+    input *p = new input();
+    this->close();
+    p->show();
 }

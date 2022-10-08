@@ -34,6 +34,10 @@ private slots:
 
     void on_equal_btn2_clicked();
 
+    void on_rotate_btn_clicked();
+
+    void on_scale_btn_clicked();
+
 private:
     Ui::myWidget *ui;
 };
