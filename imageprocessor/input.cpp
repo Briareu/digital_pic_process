@@ -29,4 +29,6 @@ void input::on_ok_btn_clicked()
     hori = ui->hori_text->toPlainText().toDouble();
     QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp");
     picForm *p = new picForm(filepath, 6, hori, verti);
+    this->close();
+    p->show();
 }

@@ -84,6 +84,7 @@ picForm::picForm(QString path, int type, double x, double y, QWidget *parent) :
     case 6:
     {
         m_type = _SCALE;
+        setWindowTitle("dst");
         cx = x;
         cy = y;
         this->scale();
@@ -466,7 +467,62 @@ void picForm::scale(){
     cv::imshow("src", src);
     //cv::namedWindow("dst",0);
     //cv::resizeWindow("dst", 480, 480);
-    cv::imshow("dst", dst);
+    //cv::imshow("dst", dst);
+
+    cv::Mat Rgb;
+    QImage Img = cvMat2QImage(dst);
+    ui->picLabel->setPixmap(QPixmap::fromImage(Img));
+
+    ui->picLabel->setFixedSize(QSize(dst.cols , dst.rows));
+    ui->picLabel->show();
+    //ui->picLabel->resize(ui->picLabel->pixmap()->size());
+    //ui->picLabel->adjustSize();
+    //ui->scrollArea->setWidget(ui->picLabel);
+}
+
+QImage picForm::cvMat2QImage(const cv::Mat &mat)
+{
+    // 8-bits unsigned, NO. OF CHANNELS = 1
+    if (mat.type() == CV_8UC1)
+    {
+        QImage image(mat.cols, mat.rows, QImage::Format_Indexed8);
+        // Set the color table (used to translate colour indexes to qRgb values)
+        image.setColorCount(256);
+        for (int i = 0; i < 256; i++)
+        {
+            image.setColor(i, qRgb(i, i, i));
+        }
+        // Copy input Mat
+        uchar *pSrc = mat.data;
+        for (int row = 0; row < mat.rows; row++)
+        {
+            uchar *pDest = image.scanLine(row);
+            memcpy(pDest, pSrc, mat.cols);
+            pSrc += mat.step;
+        }
+        return image;					//         Index1
+    }
+    // 8-bits unsigned, NO. OF CHANNELS = 3
+    else if (mat.type() == CV_8UC3)
+    {
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+        return image.rgbSwapped();		//         Index2
+    }
+    else if (mat.type() == CV_8UC4)
+    {
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_ARGB32);
+        return image.copy();			//         Index3
+    }
+    else
+    {
+        return QImage();
+    }
 }
 
 picForm::~picForm()

@@ -39,6 +39,8 @@ public:
     void rotate();
     void scale();
 
+    QImage cvMat2QImage(const cv::Mat &mat);
+
     ~picForm();
     QString filepath;
     picType m_type;
