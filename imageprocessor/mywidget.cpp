@@ -23,7 +23,6 @@ void myWidget::on_m_upload_clicked()
     picForm *p = new picForm(filepath, 0);
     this->close();
     p->show();
-
 }
 
 

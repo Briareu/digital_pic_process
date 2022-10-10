@@ -87,7 +87,7 @@ picForm::picForm(QString path, int type, double x, double y, double a, QWidget *
     case 6:
     {
         m_type = _SCALE;
-        setWindowTitle("dst");
+        setWindowTitle("结果");
         cx = x;
         cy = y;
         this->scale();
@@ -101,6 +101,7 @@ picForm::picForm(QString path, int type, double x, double y, double a, QWidget *
         cx = x;
         cy = y;
         _angle = a;
+        setWindowTitle("结果");
         this->rotate2();
         break;
     }
@@ -578,6 +579,8 @@ void picForm::scale(){
 
     ui->picLabel->setFixedSize(QSize(dst.cols , dst.rows));
     ui->picLabel->show();
+
+    //ui->scrollArea->setWidget(ui->picLabel);
     //ui->picLabel->resize(ui->picLabel->pixmap()->size());
     //ui->picLabel->adjustSize();
     //ui->scrollArea->setWidget(ui->picLabel);

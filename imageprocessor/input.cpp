@@ -8,6 +8,7 @@ input::input(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::input)
 {
+    setWindowTitle("输入");
     ui->setupUi(this);
 }
 

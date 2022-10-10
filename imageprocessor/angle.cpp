@@ -9,6 +9,7 @@ angle::angle(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::angle)
 {
+    setWindowTitle("输入");
     ui->setupUi(this);
 }
 
