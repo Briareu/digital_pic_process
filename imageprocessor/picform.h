@@ -21,7 +21,7 @@ class picForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit picForm(QString path = nullptr, int typr = 0, double x = 0.0, double  y = 0.0, QWidget *parent = nullptr);
+    explicit picForm(QString path = nullptr, int typr = 0, double x = 0.0, double  y = 0.0, double angle = 0.0, QWidget *parent = nullptr);
 
     void m_show();
     void getBitsForBMP();
@@ -38,13 +38,14 @@ public:
 
     void rotate();
     void scale();
+    void rotate2();
 
     QImage cvMat2QImage(const cv::Mat &mat);
 
     ~picForm();
     QString filepath;
     picType m_type;
-    double cx, cy;
+    double cx, cy, _angle;
 
 
 public slots:

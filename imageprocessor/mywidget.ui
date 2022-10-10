@@ -81,7 +81,7 @@
   <widget class="QPushButton" name="rotate_btn">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>140</x>
      <y>140</y>
      <width>93</width>
      <height>28</height>
@@ -94,7 +94,7 @@
   <widget class="QPushButton" name="scale_btn">
    <property name="geometry">
     <rect>
-     <x>330</x>
+     <x>370</x>
      <y>140</y>
      <width>93</width>
      <height>28</height>
@@ -102,6 +102,19 @@
    </property>
    <property name="text">
     <string>scale</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="rotate2_btn">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>140</y>
+     <width>93</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>rotate2</string>
    </property>
   </widget>
  </widget>

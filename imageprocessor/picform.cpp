@@ -11,6 +11,7 @@
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QDialogButtonBox>
+#include <fstream>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
@@ -23,8 +24,10 @@
 using namespace std;
 using namespace cv;
 
+#define pi 3.1415926
+
 //构造函数
-picForm::picForm(QString path, int type, double x, double y, QWidget *parent) :
+picForm::picForm(QString path, int type, double x, double y, double a, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::picForm)
 {
@@ -88,6 +91,17 @@ picForm::picForm(QString path, int type, double x, double y, QWidget *parent) :
         cx = x;
         cy = y;
         this->scale();
+
+        ui->setupUi(this);
+        break;
+    }
+    case 7:
+    {
+        m_type = _ROTATE2;
+        cx = x;
+        cy = y;
+        _angle = a;
+        this->rotate2();
         break;
     }
     default:
@@ -412,6 +426,95 @@ void picForm::rotate(){
         cv::imshow("dst", dst);
 }
 
+void picForm::rotate2(){
+    cv::Mat dst;
+
+    cv::Mat src = cv::imread(filepath.toStdString());
+    if(!src.data){
+        QMessageBox::critical(this, tr("错误"), tr("文件打开失败！"),
+                              QMessageBox::Save | QMessageBox::Discard, QMessageBox::Discard);
+        return;
+    }
+
+    //int tran_x = cx
+
+    double angle = _angle*CV_PI / 180.0;
+    //构造输出图像
+    //int dst_rows = round(fabs(src.rows * cos(angle)) + fabs(src.cols * sin(angle)));//图像高度
+    //int dst_cols = round(fabs(src.cols * cos(angle)) + fabs(src.rows * sin(angle)));//图像宽度
+    int dst_rows = src.rows;
+    int dst_cols = src.cols;
+
+    if (src.channels() == 1) {
+        dst = cv::Mat::zeros(dst_rows, dst_cols, CV_8UC1); //灰度图初始
+    }
+    else {
+        dst = cv::Mat::zeros(dst_rows, dst_cols, CV_8UC3); //RGB图初始
+    }
+
+    cv::Mat tran1 = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0 , 0.0,-1.0,0.0, -cy , cx , 1.0); // 将原图像坐标映射到数学笛卡尔坐标
+    cv::Mat tran2 = (cv::Mat_<double>(3,3) << cos(angle),-sin(angle),0.0 , sin(angle), cos(angle),0.0, 0.0,0.0,1.0); //数学笛卡尔坐标下顺时针旋转的变换矩阵
+    double t3[3][3] = { { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { cy, cx ,1.0} }; // 将数学笛卡尔坐标映射到旋转后的图像坐标
+    cv::Mat tran3 = cv::Mat(3.0,3.0,CV_64FC1,t3);
+    cv::Mat T = tran1*tran2*tran3;
+    cv::Mat T_inv = T.inv(); // 求逆矩阵
+
+    for (double i = 0.0; i < dst.rows; i++){
+        for (double j = 0.0; j < dst.cols; j++){
+            cv::Mat dst_coordinate = (cv::Mat_<double>(1, 3) << j, i, 1.0);
+            cv::Mat src_coordinate = dst_coordinate * T_inv;
+            double v = src_coordinate.at<double>(0, 0);
+            double w = src_coordinate.at<double>(0, 1);
+
+            //双线性插值
+            if (int(_angle) % 90 == 0) {
+                if (v < 0)
+                    v = 0;
+                if (v > src.cols - 1)
+                    v = src.cols - 1;
+                if (w < 0)
+                    w = 0;
+                if (w > src.rows - 1)
+                    w = src.rows - 1;
+            }
+
+            if (v >= 0 && w >= 0 && v <= src.cols - 1 && w <= src.rows - 1){
+                int top = floor(w), bottom = ceil(w), left = floor(v), right = ceil(v);
+                double pw = w - top ;
+                double pv = v - left;
+                if (src.channels() == 1){
+                    dst.at<uchar>(i, j) = (1 - pw)*(1 - pv)*src.at<uchar>(top, left) +
+                            (1 - pw)*pv*src.at<uchar>(top, right) +
+                            pw*(1 - pv)*src.at<uchar>(bottom, left) +
+                            pw*pv*src.at<uchar>(bottom, right);
+                }
+                else{
+                    dst.at<cv::Vec3b>(i, j)[0] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[0] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[0] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[0] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[0];
+                    dst.at<cv::Vec3b>(i, j)[1] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[1] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[1] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[1] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[1];
+                    dst.at<cv::Vec3b>(i, j)[2] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[2] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[2] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[2] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[2];
+                }
+            }
+        }
+    }
+
+
+
+
+    cv::namedWindow("src");
+    cv::imshow("src", src);
+    //cv::namedWindow("dst",1);
+    cv::imshow("dst", dst);
+}
+
 void picForm::scale(){
     cv::Mat dst;
     cv::Mat src = cv::imread(filepath.toStdString());
@@ -532,7 +635,48 @@ picForm::~picForm()
 
 void picForm::on_pushButton_clicked()
 {
-    myWidget *w = new myWidget();
-    this->close();
-    w->show();
+    switch (m_type) {
+    case NORMAL:
+    {
+        myWidget *w = new myWidget();
+        this->close();
+        w->show();
+        break;
+    }
+    case BMP:
+    {
+        myWidget *w = new myWidget();
+        this->close();
+        w->show();
+        break;
+    }
+    case _FT:
+    {
+        break;
+    }
+    case _EQUAL:
+    {
+        break;
+    }
+    case _COLOREQUAL:
+    {
+        break;
+    }
+    case _ROTATE:
+    {
+        break;
+    }
+    case _SCALE:
+    {
+        myWidget *w = new myWidget();
+        this->close();
+        w->show();
+        break;
+    }
+    case _ROTATE2:
+    {
+        break;
+    }
+    }
 }
+

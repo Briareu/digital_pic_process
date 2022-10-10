@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include "picform.h"
 #include "input.h"
+#include "angle.h"
 
 myWidget::myWidget(QWidget *parent)
     : QWidget(parent)
@@ -64,6 +65,15 @@ void myWidget::on_rotate_btn_clicked()
 void myWidget::on_scale_btn_clicked()
 {
     input *p = new input();
+    this->close();
+    p->show();
+}
+
+void myWidget::on_rotate2_btn_clicked()
+{
+    //QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp");
+    //picForm *p = new picForm(filepath, 7);
+    angle *p = new angle();
     this->close();
     p->show();
 }

@@ -38,6 +38,8 @@ private slots:
 
     void on_scale_btn_clicked();
 
+    void on_rotate2_btn_clicked();
+
 private:
     Ui::myWidget *ui;
 };
