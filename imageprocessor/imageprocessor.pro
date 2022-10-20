@@ -13,20 +13,23 @@ SOURCES += \
     input.cpp \
     main.cpp \
     mywidget.cpp \
-    picform.cpp
+    picform.cpp \
+    show_img.cpp
 
 HEADERS += \
     angle.h \
     input.h \
     mywidget.h \
     picType.h \
-    picform.h
+    picform.h \
+    show_img.h
 
 FORMS += \
     angle.ui \
     input.ui \
     mywidget.ui \
-    picform.ui
+    picform.ui \
+    show_img.ui
 
 INCLUDEPATH += E:\opencv\opencv\opencv-build\install\include
 

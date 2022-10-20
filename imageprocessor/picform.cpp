@@ -546,7 +546,6 @@ void picForm::scale(){
             double w = src_coordinate.at<double>(0, 1); // 原图像的纵坐标，行，高
 
             /*双线性插值*/
-            // 判断是否越界
             if (v < 0) v = 0; if (v > src.cols - 1) v = src.cols - 1;
             if (w < 0) w = 0; if (w > src.rows - 1) w = src.rows - 1;
 
@@ -556,13 +555,24 @@ void picForm::scale(){
                 double pv = v - left; //pv为坐标 列 的小数部分(坐标偏差)
                 if (src.channels() == 1){
                     //灰度图像
-                    dst.at<uchar>(i, j) = (1 - pw)*(1 - pv)*src.at<uchar>(top, left) + (1 - pw)*pv*src.at<uchar>(top, right) + pw*(1 - pv)*src.at<uchar>(bottom, left) + pw*pv*src.at<uchar>(bottom, right);
+                    dst.at<uchar>(i, j) = (1 - pw)*(1 - pv)*src.at<uchar>(top, left) +
+                            (1 - pw)*pv*src.at<uchar>(top, right) +
+                            pw*(1 - pv)*src.at<uchar>(bottom, left) +
+                            pw*pv*src.at<uchar>(bottom, right);
                 }
                 else{
-                    //彩色图像
-                    dst.at<cv::Vec3b>(i, j)[0] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[0] + (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[0] + pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[0] + pw*pv*src.at<cv::Vec3b>(bottom, right)[0];
-                    dst.at<cv::Vec3b>(i, j)[1] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[1] + (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[1] + pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[1] + pw*pv*src.at<cv::Vec3b>(bottom, right)[1];
-                    dst.at<cv::Vec3b>(i, j)[2] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[2] + (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[2] + pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[2] + pw*pv*src.at<cv::Vec3b>(bottom, right)[2];
+                    dst.at<cv::Vec3b>(i, j)[0] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[0] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[0] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[0] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[0];
+                    dst.at<cv::Vec3b>(i, j)[1] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[1] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[1] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[1] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[1];
+                    dst.at<cv::Vec3b>(i, j)[2] = (1 - pw)*(1 - pv)*src.at<cv::Vec3b>(top, left)[2] +
+                            (1 - pw)*pv*src.at<cv::Vec3b>(top, right)[2] +
+                            pw*(1 - pv)*src.at<cv::Vec3b>(bottom, left)[2] +
+                            pw*pv*src.at<cv::Vec3b>(bottom, right)[2];
                 }
             }
         }
