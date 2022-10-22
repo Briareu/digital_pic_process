@@ -43,6 +43,9 @@ public:
     cv::Mat src;
     picType mytype;
 
+    int iHeight;
+    int iWidth;
+
 private slots:
     void on_pushButton_clicked();
 

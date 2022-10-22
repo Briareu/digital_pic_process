@@ -31,6 +31,10 @@ show_img::show_img(picType my, QWidget *parent) :
         show_image(src);
     }
     else{
+        if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
+            iHeight = 1534, iWidth = 1500;
+        else
+            iHeight = 1776, iWidth = 966;
         ui->setupUi(this);
         this->getbit();
     }
@@ -331,16 +335,12 @@ void show_img::getbit(){
         return;
     }
 
-    int iHeight = 1776, iWidth = 966;
-    if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
-        iHeight = 1534, iWidth = 1500;
-    else
-        iHeight = 1776, iWidth = 966;
     //std::cout<<filepath.toStdString();
 
     //unsigned char *data = (unsigned char *)malloc(sizeof(unsigned long));
-    uint8_t data[4];
-    fread(data, 1, 4, pfRaw);
+    uint8_t temp[4];
+    fread(temp, 1, 4, pfRaw);
+    fread(temp, 1, 4, pfRaw);
     //int temp_wid = this->convert_hex_inv(4, data);
     /*char * temp;
     pf>>temp;
@@ -359,11 +359,9 @@ void show_img::getbit(){
     int temp_wid = 0;
     temp_wid = tt[0] * 16 * 16 * 16 + tt[1] * 16 * 16 + tt[2] * 16 + tt[3];*/
 
-    fread(data, 1, 4, pfRaw);
-    //int temp_hei = this->convert_hex_inv(4, data1);
 
-    //std::cout<<temp_wid<<std::endl;
-    //std::cout<<temp_hei<<std::endl;
+    //std::cout<<temp[0]<<std::endl;
+    //std::cout<<temp[1]<<std::endl;
     unsigned short *pushRawdata = (unsigned short *)malloc(sizeof(unsigned short) * iWidth * iHeight);
 
     fread(pushRawdata, iWidth * iHeight * sizeof(unsigned short), 1, pfRaw);
@@ -374,7 +372,22 @@ void show_img::getbit(){
         raw[i] = pushRawdata[i]>>4;
     }
 
-    if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
+    cv::Mat image(cv::Size(966, 1776), CV_8UC1, raw);
+    //cv::Mat image(cv::Size(iWidth, iHeight), CV_8UC1, raw);
+    src = image;
+    this->show_image(image);
+    if(filepath.toStdString().compare("D:\\Qt\\digital\\knee.raw"))
+        return;
+
+    if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw")){
+        cv::Mat image(cv::Size(1500, 1534), CV_8UC1, raw);
+        src = image;
+        this->show_image(image);
+        return;
+    }
+
+
+    /*if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
     {
         cv::Mat image(cv::Size(1500, 1534), CV_8UC1, raw);
         this->show_image(image);
@@ -387,7 +400,7 @@ void show_img::getbit(){
         this->show_image(image);
 
         src = image;
-    }
+    }*/
 }
 
 int show_img::convert_hex_inv(size_t count, const uint8_t *src) {
@@ -443,9 +456,20 @@ int show_img::convert(int ww, int wl, int tar){
 void show_img::my_window(cv::Mat &src, int ww, int wl){
     dst = src.clone();
     for(int i = 0; i < dst.rows; i++){
-        for(int j = 0; j < dst.rows; j++){
-            int temp = dst.at<uchar>(i, j);
-            dst.at<uchar>(i, j) = this->convert(ww, wl, temp);
+        for(int j = 0; j < dst.cols; j++){
+            if(src.channels() == 1){
+                int temp = dst.at<uchar>(i, j);
+                dst.at<uchar>(i, j) = this->convert(ww, wl, temp);
+            }else{
+                int temp = dst.at<cv::Vec3b>(i, j)[0];
+                dst.at<cv::Vec3b>(i, j)[0] = convert(ww, wl, temp);
+
+                temp = dst.at<cv::Vec3b>(i, j)[1];
+                dst.at<cv::Vec3b>(i, j)[0] = convert(ww, wl, temp);
+
+                temp = dst.at<cv::Vec3b>(i, j)[2];
+                dst.at<cv::Vec3b>(i, j)[0] = convert(ww, wl, temp);
+            }
         }
     }
 }
