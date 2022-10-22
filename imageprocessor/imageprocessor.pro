@@ -11,6 +11,7 @@ CONFIG += c++11
 SOURCES += \
     angle.cpp \
     input.cpp \
+    lab3.cpp \
     main.cpp \
     mywidget.cpp \
     picform.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
 HEADERS += \
     angle.h \
     input.h \
+    lab3.h \
     mywidget.h \
     picType.h \
     picform.h \
@@ -27,6 +29,7 @@ HEADERS += \
 FORMS += \
     angle.ui \
     input.ui \
+    lab3.ui \
     mywidget.ui \
     picform.ui \
     show_img.ui

@@ -1,5 +1,6 @@
 #include "show_img.h"
 #include "ui_show_img.h"
+#include "picType.h"
 
 #include <QKeyEvent>
 #include <QFileDialog>
@@ -13,21 +14,39 @@
 #include <QSpinBox>
 #include <QDialogButtonBox>
 #include <fstream>
+#include <sstream>
+#include <QChar>
 
-show_img::show_img(QWidget *parent) :
-    QMainWindow(parent),
+show_img::show_img(picType my, QWidget *parent) :
+    QMainWindow(parent), mytype(my),
     ui(new Ui::show_img)
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg");
+    QString str = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg;*.raw");
     this->filepath = str;
 
-    cv::Mat src = cv::imread(filepath.toStdString());
+    if(mytype == _LAB){
+        src = cv::imread(filepath.toStdString());
 
-    ui->setupUi(this);
-    show_image(src);
+        ui->setupUi(this);
+        show_image(src);
+    }
+    else{
+        ui->setupUi(this);
+        this->getbit();
+    }
 }
 
 void show_img::show_image(const cv::Mat &src){
+    QImage Img = cvMat2QImage(src);
+
+    QGraphicsScene *scene = new QGraphicsScene;
+    scene->addPixmap(QPixmap::fromImage(Img));
+    ui->pic2->setScene(scene);
+    ui->pic2->show();
+
+}
+
+void show_img::show_image2(const cv::Mat &src){
     QImage Img = cvMat2QImage(src);
 
     QGraphicsScene *scene = new QGraphicsScene;
@@ -37,14 +56,11 @@ void show_img::show_image(const cv::Mat &src){
 
 }
 
-void show_img::show_image2(const cv::Mat &src){
-    QImage Img = cvMat2QImage(src);
-
+void show_img::show_image3(QImage Img){
     QGraphicsScene *scene = new QGraphicsScene;
     scene->addPixmap(QPixmap::fromImage(Img));
     ui->pic2->setScene(scene);
     ui->pic2->show();
-
 }
 
 QImage show_img::cvMat2QImage(const cv::Mat &mat)
@@ -308,20 +324,130 @@ void show_img::scale(cv::Mat &src, double cx, double cy){
 }
 
 void show_img::getbit(){
-    char *ch;
-    QByteArray ba = filepath.toLatin1();
-    ch = ba.data();
-    FILE *fp = fopen(ch, "rb");
-    if(!fp){
+    FILE *pfRaw = fopen(filepath.toLatin1(), "rb");
+    if(!pfRaw){
         QMessageBox::critical(this, tr("错误"), tr("文件打开失败！"),
                               QMessageBox::Save | QMessageBox::Discard, QMessageBox::Discard);
         return;
     }
-    unsigned char *imagedata = NULL;
 
-    long width, height;
-    BITMAPFILEHEADER fileHead;
-    fread(&fileHead, sizeof(BITMAPFILEHEADER), 1, fp);
+    int iHeight = 1776, iWidth = 966;
+    if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
+        iHeight = 1534, iWidth = 1500;
+    else
+        iHeight = 1776, iWidth = 966;
+    //std::cout<<filepath.toStdString();
+
+    //unsigned char *data = (unsigned char *)malloc(sizeof(unsigned long));
+    uint8_t data[4];
+    fread(data, 1, 4, pfRaw);
+    //int temp_wid = this->convert_hex_inv(4, data);
+    /*char * temp;
+    pf>>temp;
+    int tt[4];
+    for(int i = 3; i >= 0; i--){
+        int t = 0;
+        if(temp[3 - i] >= '0' && temp[3 - i] <= '9')
+            t = temp[3 - i] - '0';
+        else
+            t = temp[3 - i] - 'a' + 10;
+        if(i == 3) tt[2] = t;
+        if(i == 2) tt[3] = t;
+        if(i == 1) tt[0] = t;
+        if(i == 0) tt[1] = t;
+    }
+    int temp_wid = 0;
+    temp_wid = tt[0] * 16 * 16 * 16 + tt[1] * 16 * 16 + tt[2] * 16 + tt[3];*/
+
+    fread(data, 1, 4, pfRaw);
+    //int temp_hei = this->convert_hex_inv(4, data1);
+
+    //std::cout<<temp_wid<<std::endl;
+    //std::cout<<temp_hei<<std::endl;
+    unsigned short *pushRawdata = (unsigned short *)malloc(sizeof(unsigned short) * iWidth * iHeight);
+
+    fread(pushRawdata, iWidth * iHeight * sizeof(unsigned short), 1, pfRaw);
+    fclose(pfRaw);
+
+    unsigned char *raw = (unsigned char *)malloc(sizeof(unsigned char) * iWidth * iHeight);
+    for(int i = 0; i < iHeight * iWidth; i++){
+        raw[i] = pushRawdata[i]>>4;
+    }
+
+    if(filepath.toStdString().compare("D:\\Qt\\digital\\lung.raw"))
+    {
+        cv::Mat image(cv::Size(1500, 1534), CV_8UC1, raw);
+        this->show_image(image);
+
+        src = image;
+    }
+    else
+    {
+        cv::Mat image(cv::Size(966, 1776), CV_8UC1, raw);
+        this->show_image(image);
+
+        src = image;
+    }
+}
+
+int show_img::convert_hex_inv(size_t count, const uint8_t *src) {
+    QString temp = " ";
+    std::ostringstream strStream;
+    strStream << (uint16_t)src[2];
+    temp += QString::fromStdString(strStream.str());
+    strStream.clear();
+    strStream << (uint16_t)src[3];
+    temp += QString::fromStdString(strStream.str());
+    strStream.clear();
+    strStream << (uint16_t)src[0];
+    temp += QString::fromStdString(strStream.str());
+    strStream.clear();
+    strStream << (uint16_t)src[1];
+    temp += QString::fromStdString(strStream.str());
+
+    int j=0;
+    QChar cha( '0' );
+    while(temp.at(j)==cha)
+        j++;
+    temp = temp.right(temp.size()-j);
+    return temp.toInt( );
+}
+
+int show_img::convert(int ww, int wl, int tar){
+    int res = 0;
+    /*if(tar > wl + ww/2)
+        res = 255;
+    else if(tar < wl - ww/2)
+        res = 0;
+    else{
+        float a = 256/ww;
+        float b  = (ww/2 - wl) * 256 / ww;
+        res = a * tar + b;
+    }
+    return res;*/
+
+    double min = (2 * wl - ww)/2.0 + 0.5;
+    double max = (2 * wl + ww)/2.0 + 0.5;
+
+    double factor = 255.0 / (double)(max - min);
+
+    if(tar < min) return 0;
+    if(tar > max) return 255;
+    res = (int)((tar - min) * factor);
+
+    if(res < 0) return 0;
+    if(res > 255) return 255;
+    return res;
+}
+
+void show_img::my_window(cv::Mat &src, int ww, int wl){
+    dst = src.clone();
+    for(int i = 0; i < dst.rows; i++){
+        for(int j = 0; j < dst.rows; j++){
+            int temp = dst.at<uchar>(i, j);
+            dst.at<uchar>(i, j) = this->convert(ww, wl, temp);
+        }
+    }
 }
 
 show_img::~show_img()
@@ -331,8 +457,7 @@ show_img::~show_img()
 
 void show_img::on_pushButton_clicked()
 {
-    cv::Mat src, dst_t;
-    src = cv::imread(filepath.toStdString());
+    cv::Mat dst_t;
     int pross = 0;//whether the dst has data
 
     if(ui->angle->document()->isEmpty())
@@ -364,6 +489,18 @@ void show_img::on_pushButton_clicked()
             pross = 1;
         }
     }
+
+    if(ui->w_loc->document()->isEmpty() || ui->w_wid->document()->isEmpty()){
+        //empty
+    }else{
+        if(pross == 1){
+            dst_t = dst;
+            this->my_window(dst_t, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+        }else{
+            this->my_window(src, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+            pross = 1;
+        }
+    }
     show_image2(dst);
     //ui->label->setText("123");
 }
@@ -376,4 +513,6 @@ void show_img::on_pushButton_2_clicked()
     ui->rotate_y->clear();
     ui->scale_x->clear();
     ui->scale_y->clear();
+    ui->w_loc->clear();
+    ui->w_wid->clear();
 }
