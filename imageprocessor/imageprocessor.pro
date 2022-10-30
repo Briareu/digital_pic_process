@@ -12,6 +12,7 @@ SOURCES += \
     angle.cpp \
     input.cpp \
     lab3.cpp \
+    lab4.cpp \
     main.cpp \
     mywidget.cpp \
     picform.cpp \
@@ -21,6 +22,7 @@ HEADERS += \
     angle.h \
     input.h \
     lab3.h \
+    lab4.h \
     mywidget.h \
     picType.h \
     picform.h \
@@ -30,6 +32,7 @@ FORMS += \
     angle.ui \
     input.ui \
     lab3.ui \
+    lab4.ui \
     mywidget.ui \
     picform.ui \
     show_img.ui

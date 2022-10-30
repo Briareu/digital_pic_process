@@ -3,7 +3,7 @@
 
 enum picType{
     NORMAL, BMP, _FT, _EQUAL, _COLOREQUAL,
-    _ROTATE, _SCALE, _ROTATE2, _RAW, _LAB,
+    _ROTATE, _SCALE, _ROTATE2, _RAW, _LAB, _OTHER,
 };
 
 #endif // PICTYPE_H
