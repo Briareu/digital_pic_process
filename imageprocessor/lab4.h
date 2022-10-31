@@ -43,7 +43,7 @@ public:
     //void intensify(cv::Mat &Img);
     void sharp(QImage &Img);
 
-    void save_img(QImage &Img, std::string file_name);
+    void save_img(QImage &Img, QString name);
 
     QString filepath;
 
@@ -67,6 +67,8 @@ private slots:
     void on_actionraw_triggered();
 
     void on_actionother_triggered();
+
+    void on_pushButton_3_clicked();
 
 private:
     Ui::lab4 *ui;

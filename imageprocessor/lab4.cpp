@@ -304,8 +304,10 @@ void lab4::sharp(QImage &Img){
     dst_img = this->Matrix2QImage(raw2, iWidth, iHeight);
 }
 
-void lab4::save_img(QImage &Img, std::string file_name){
-    Img.save("D:/Qt/test.bmp", "BMP");
+void lab4::save_img(QImage &Img, QString name){
+    QString finale_name = name;
+    finale_name.append(".bmp");
+    Img.save(finale_name);
 }
 
 lab4::~lab4()
@@ -335,12 +337,6 @@ void lab4::on_pushButton_clicked()
             temp_img = dst_img;
         }
 
-        if(ui->img_save->isChecked()){
-            //save
-            std::string name = ui->save_name->toPlainText().toStdString();
-            this->save_img(dst_img, name);
-        }
-
         show_image(dst_img);
 
         break;
@@ -362,10 +358,6 @@ void lab4::on_pushButton_clicked()
             temp = dst;
         }
 
-        if(ui->img_save->isChecked()){
-            //save
-        }
-
         show_image(dst);
 
         break;
@@ -378,13 +370,10 @@ void lab4::on_pushButton_clicked()
 void lab4::on_pushButton_2_clicked()
 {
     ui->img_intensify->setChecked(false);
-    ui->img_save->setChecked(false);
     ui->img_window->setChecked(false);
 
     ui->w_loc->clear();
     ui->w_wid->clear();
-
-    ui->save_name->clear();
 
     dst_img = src_img;
     dst = src;
@@ -407,4 +396,13 @@ void lab4::on_actionother_triggered()
     mytype = _OTHER;
     src = cv::imread(filepath.toStdString());
     this->show_image(src);
+}
+
+void lab4::on_pushButton_3_clicked()
+{
+    //save
+    this->save_img(dst_img, QString::fromStdString(ui->save_name->toPlainText().toStdString()));
+    QMessageBox::about(this, tr("提示"),tr("图片已保存"));
+    ui->save_name->clear();
+    ui->img_save->setChecked(false);
 }
