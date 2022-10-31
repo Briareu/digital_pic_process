@@ -37,10 +37,11 @@ public:
     int convert(int ww, int wl, int tar);
 
     void my_window(QImage &src, int ww, int wl);
+    void my_window(int ww, int wl);
     int convert2(int ww, int wl, int tar);
 
     void intensify(QImage &Img);
-    //void intensify(cv::Mat &Img);
+    void intensify(cv::Mat &Img);
     void sharp(QImage &Img);
 
     void save_img(QImage &Img, QString name);

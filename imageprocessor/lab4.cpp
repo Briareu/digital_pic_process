@@ -18,6 +18,9 @@
 #include <QChar>
 #include <qcolor.h>
 
+
+int *raw_p;
+
 lab4::lab4(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::lab4)
@@ -92,6 +95,7 @@ void lab4::getbit(){
     }
 
     src_img = this->Matrix2QImage(raw, iWidth, iHeight);
+    dst_img = src_img;
     this->show_image(src_img);
 
     return;
@@ -216,6 +220,26 @@ void lab4::my_window(QImage &src, int ww, int wl){
     dst_img = tempImg;
 }
 
+void lab4::my_window(int ww, int wl){
+    QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
+
+    int num = 0;
+    for (int i = 0; i < iHeight; ++i)
+    {
+        for (int j = 0; j < iWidth; ++j)
+        {
+            int temp = raw_p[num];
+            //tempImg.setPixel(j, i, temp);
+            temp = convert(ww, wl, temp);
+            tempImg.setPixelColor(j, i, qRgb(temp, temp, temp));
+            num++;
+            //tempImg.setPixel(i, j, qRgba64(4000, 4000, 4000, 4000));
+        }
+    }
+
+    dst_img = tempImg;
+}
+
 int lab4::convert2(int ww, int wl, int tar){
     int res = 0;
     double min = (2 * wl - ww)/2.0 + 0.5;
@@ -231,9 +255,11 @@ int lab4::convert2(int ww, int wl, int tar){
     if(res > 4095.0) return 4095.0;
     return res;
 }
-
+/*
 void lab4::intensify(QImage &Img){
     QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
+
+    raw_p = (int *)malloc(sizeof(int) * iWidth * iHeight);
 
     int kernel[3][3] = {
         {-1, -1, -1},
@@ -244,16 +270,22 @@ void lab4::intensify(QImage &Img){
     int sizeKernel = 3;
     int sumKernel = 3;
     QColor color;
+    int num = 0;
+    int temp = 0;
 
     for(int x = sizeKernel/2; x < Img.width() - sizeKernel/2; x++){
         for(int y = sizeKernel/2; y < Img.height() - sizeKernel; y++){
             int r = 0, g = 0, b = 0;
+            int data = 0;
             for(int i = -sizeKernel/2; i <= sizeKernel/2; i++){
                 for(int j = -sizeKernel/2; j <= sizeKernel/2; j++){
-                    color = QColor(Img.pixel(x + i, y + i));
+                    color = QColor(Img.pixel(x + i, y + j));
                     r += color.red()*kernel[sizeKernel/2 + i][sizeKernel/2 + j];
                     g += color.green()*kernel[sizeKernel/2 + i][sizeKernel/2 + j];
                     b += color.blue()*kernel[sizeKernel/2 + i][sizeKernel/2 + j];
+
+                    temp = raw[(x + i)*iWidth + y + j];
+                    data += temp*kernel[sizeKernel/2 + i][sizeKernel/2 + j];
                 }
             }
 
@@ -264,10 +296,219 @@ void lab4::intensify(QImage &Img){
             g = qBound(0,g,255) ;
             b = qBound(0,b,255) ;
 
+            data = data/sumKernel + temp;
+
             tempImg.setPixel(x, y, qRgb(r, g, b));
+            raw_p[x * iWidth + y] = data;
+            if(num <= 100){
+                std::cout<<raw[x*iWidth + y]<<":      "<<data<<std::endl;
+                num++;
+            }
         }
     }
     dst_img = tempImg;
+}*/
+
+void lab4::intensify(QImage &Img){
+    QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
+
+    raw_p = (int *)malloc(sizeof(int) * iWidth * iHeight);
+
+    for (int i = 1; i < iHeight - 1; i++)
+    {
+        for (int j = 1; j < iWidth - 1; j++)
+        {
+            unsigned char imageKernel[9] = { 0 };
+            imageKernel[0] = raw[(i - 1)*iWidth + j - 1];
+            imageKernel[1] = raw[(i - 1)*iWidth + j];
+            imageKernel[2] = raw[(i - 1)*iWidth + j + 1];
+            imageKernel[3] = raw[(i)*iWidth + j - 1];
+            imageKernel[4] = raw[(i)*iWidth + j];
+            imageKernel[5] = raw[(i)*iWidth + j + 1];
+            imageKernel[6] = raw[(i + 1)*iWidth + j - 1];
+            imageKernel[7] = raw[(i + 1)*iWidth + j];
+            imageKernel[8] = raw[(i + 1)*iWidth + j + 1];
+
+            //化简后结果   这里使用了 1,1.414,1 的模板（各向同性Sobel算子），与 1,2,1的模板区别不是很大
+            float GX = imageKernel[2] - imageKernel[0] + (imageKernel[5] - imageKernel[3]) * 1.414 + imageKernel[8] - imageKernel[6];
+            float GY = imageKernel[0] + imageKernel[2] + (imageKernel[1] - imageKernel[7]) * 1.414 - imageKernel[6] - imageKernel[8];
+
+            //int val = LimitValue(sqrt(GX*GX + GY*GY) + 0.5);
+
+            raw_p[i*iWidth + j] = sqrt(GX*GX + GY*GY);
+        }
+    }
+
+    tempImg = this->Matrix2QImage(raw_p, iWidth, iHeight);
+    dst_img = tempImg;
+}
+
+void lab4::intensify(cv::Mat &Img){
+    cv::Mat tempImg = Img;
+    /*
+    for (int i = 1; i < Img.rows - 1; i++)
+    {
+        for (int j = 1; j < Img.cols - 1; j++)
+        {
+            if(Img.channels() == 3){
+                unsigned char imageKernel[9] = { 0 };
+                unsigned char imageKernel_g[9] = { 0 };
+                unsigned char imageKernel_b[9] = { 0 };
+                imageKernel[0] = Img.at<cv::Vec3b>(i - 1, j - 1)[0];
+                imageKernel_g[0] = Img.at<cv::Vec3b>(i - 1, j - 1)[1];
+                imageKernel_b[0] = Img.at<cv::Vec3b>(i - 1, j - 1)[2];
+
+                imageKernel[1] = Img.at<cv::Vec3b>(i - 1, j)[0];
+                imageKernel_g[1] = Img.at<cv::Vec3b>(i - 1, j)[1];
+                imageKernel_b[1] = Img.at<cv::Vec3b>(i - 1, j)[2];
+
+                imageKernel[2] = Img.at<cv::Vec3b>(i - 1, j + 1)[0];
+                imageKernel_g[2] = Img.at<cv::Vec3b>(i - 1, j + 1)[1];
+                imageKernel_b[2] = Img.at<cv::Vec3b>(i - 1, j + 1)[2];
+
+                imageKernel[3] = Img.at<cv::Vec3b>(i, j - 1)[0];
+                imageKernel_g[3] = Img.at<cv::Vec3b>(i, j - 1)[1];
+                imageKernel_b[3] = Img.at<cv::Vec3b>(i, j - 1)[2];
+
+                imageKernel[4] = Img.at<cv::Vec3b>(i, j)[0];
+                imageKernel_g[4] = Img.at<cv::Vec3b>(i, j)[1];
+                imageKernel_b[4] = Img.at<cv::Vec3b>(i, j)[2];
+
+                imageKernel[5] = Img.at<cv::Vec3b>(i, j + 1)[0];
+                imageKernel_g[5] = Img.at<cv::Vec3b>(i, j + 1)[1];
+                imageKernel_b[5] = Img.at<cv::Vec3b>(i, j + 1)[2];
+
+                imageKernel[6] = Img.at<cv::Vec3b>(i + 1, j - 1)[0];
+                imageKernel_g[6] = Img.at<cv::Vec3b>(i + 1, j - 1)[1];
+                imageKernel_b[6] = Img.at<cv::Vec3b>(i + 1, j - 1)[2];
+
+                imageKernel[7] = Img.at<cv::Vec3b>(i + 1, j)[0];
+                imageKernel_g[7] = Img.at<cv::Vec3b>(i + 1, j)[1];
+                imageKernel_b[7] = Img.at<cv::Vec3b>(i + 1, j)[2];
+
+                imageKernel[8] = Img.at<cv::Vec3b>(i + 1, j + 1)[0];
+                imageKernel_g[8] = Img.at<cv::Vec3b>(i + 1, j + 1)[1];
+                imageKernel_b[8] = Img.at<cv::Vec3b>(i + 1, j + 1)[2];
+
+
+                //化简后结果   这里使用了 1,1.414,1 的模板（各向同性Sobel算子），与 1,2,1的模板区别不是很大
+                float GX = imageKernel[2] - imageKernel[0] + (imageKernel[5] - imageKernel[3]) * 1.414 + imageKernel[8] - imageKernel[6];
+                float GY = imageKernel[0] + imageKernel[2] + (imageKernel[1] - imageKernel[7]) * 1.414 - imageKernel[6] - imageKernel[8];
+
+                float GX_g = imageKernel_g[2] - imageKernel_g[0] + (imageKernel_g[5] - imageKernel_g[3]) * 1.414 + imageKernel_g[8] - imageKernel_g[6];
+                float GY_g = imageKernel_g[0] + imageKernel_g[2] + (imageKernel_g[1] - imageKernel_g[7]) * 1.414 - imageKernel_g[6] - imageKernel_g[8];
+
+                float GX_b = imageKernel_b[2] - imageKernel_b[0] + (imageKernel_b[5] - imageKernel_b[3]) * 1.414 + imageKernel_b[8] - imageKernel_b[6];
+                float GY_b = imageKernel_b[0] + imageKernel_b[2] + (imageKernel_b[1] - imageKernel_b[7]) * 1.414 - imageKernel_b[6] - imageKernel_b[8];
+
+                //int val = LimitValue(sqrt(GX*GX + GY*GY) + 0.5);
+
+                int val_r = sqrt(GX*GX + GY*GY);
+                int val_g = sqrt(GX_g*GX_g + GY_g*GY_g);
+                int val_b = sqrt(GX_b*GX_b + GY_b*GY_b);
+
+                tempImg.at<cv::Vec3b>(i, j)[0] = val_r;
+                tempImg.at<cv::Vec3b>(i, j)[1] = val_g;
+                tempImg.at<cv::Vec3b>(i, j)[2] = val_b;
+            }
+            else if(Img.channels() == 1){
+                unsigned char imageKernel[9] = { 0 };
+                imageKernel[0] = Img.at<uchar>(i - 1, j - 1);
+                imageKernel[1] = Img.at<uchar>(i - 1, j);
+                imageKernel[2] = Img.at<uchar>(i - 1, j + 1);
+                imageKernel[3] = Img.at<uchar>(i, j - 1);
+                imageKernel[4] = Img.at<uchar>(i, j);
+                imageKernel[5] = Img.at<uchar>(i, j + 1);
+                imageKernel[6] = Img.at<uchar>(i + 1, j - 1);
+                imageKernel[7] = Img.at<uchar>(i + 1, j);
+                imageKernel[8] = Img.at<uchar>(i + 1, j + 1);
+
+
+                //化简后结果   这里使用了 1,1.414,1 的模板（各向同性Sobel算子），与 1,2,1的模板区别不是很大
+                float GX = imageKernel[2] - imageKernel[0] + (imageKernel[5] - imageKernel[3]) * 1.414 + imageKernel[8] - imageKernel[6];
+                float GY = imageKernel[0] + imageKernel[2] + (imageKernel[1] - imageKernel[7]) * 1.414 - imageKernel[6] - imageKernel[8];
+
+                int val_r = sqrt(GX*GX + GY*GY);
+
+                tempImg.at<uchar>(i, j) = val_r;
+            }
+        }
+    }
+*/
+
+    int rows = Img.rows;
+    int cols = Img.cols;
+    cv::Mat Dx = Img.clone();//用于存放水平方向微分算子的运算结果
+    cv::Mat Dy = Img.clone();//用于存放垂直方向微分算子的运算结果
+
+    if(Img.channels() == 1){
+        //卷积
+        //注意这里的i一定要从1开始，到ows-1结束。
+        for (int i = 1; i < rows-1; i++)
+        {
+            for (int j = 1; j < cols-1; j++)
+            {
+                Dx.at<uchar>(i, j) = Img.at<uchar>(i + 1, j - 1) - Img.at<uchar>(i - 1, j - 1)
+                        + 2 * (Img.at<uchar>(i + 1, j) - Img.at<uchar>(i - 1, j))
+                        + Img.at<uchar>(i + 1, j + 1) - Img.at<uchar>(i - 1, j + 1);
+                Dy.at<uchar>(i, j) = Img.at<uchar>(i - 1, j + 1) - Img.at<uchar>(i - 1, j - 1)
+                        + 2 * (Img.at<uchar>(i, j + 1) - Img.at<uchar>(i, j - 1))
+                        + Img.at<uchar>(i + 1, j + 1) - Img.at<uchar>(i + 1, j - 1);
+            }
+        }
+
+        for (int i = 0; i < rows-1; i++)
+        {
+            for (int j = 0; j < cols-1; j++)
+            {
+                tempImg.at<uchar>(i, j) = abs(Dx.at<uchar>(i, j)) + abs(Dy.at <uchar>(i, j));
+            }
+        }
+
+        dst = tempImg;
+    }
+    else if(Img.channels() == 3){
+        //卷积
+        //注意这里的i一定要从1开始，到ows-1结束。
+        for (int i = 1; i < rows-1; i++)
+        {
+            for (int j = 1; j < cols-1; j++)
+            {
+                Dx.at<cv::Vec3b>(i, j)[0] = Img.at<cv::Vec3b>(i + 1, j - 1)[0] - Img.at<cv::Vec3b>(i - 1, j - 1)[0]
+                        + 2 * (Img.at<cv::Vec3b>(i + 1, j)[0] - Img.at<cv::Vec3b>(i - 1, j)[0])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[0] - Img.at<cv::Vec3b>(i - 1, j + 1)[0];
+                Dx.at<cv::Vec3b>(i, j)[1] = Img.at<cv::Vec3b>(i + 1, j - 1)[1] - Img.at<cv::Vec3b>(i - 1, j - 1)[1]
+                        + 2 * (Img.at<cv::Vec3b>(i + 1, j)[1] - Img.at<cv::Vec3b>(i - 1, j)[1])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[1] - Img.at<cv::Vec3b>(i - 1, j + 1)[1];
+                Dx.at<cv::Vec3b>(i, j)[2] = Img.at<cv::Vec3b>(i + 1, j - 1)[2] - Img.at<cv::Vec3b>(i - 1, j - 1)[2]
+                        + 2 * (Img.at<cv::Vec3b>(i + 1, j)[2] - Img.at<cv::Vec3b>(i - 1, j)[2])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[2] - Img.at<cv::Vec3b>(i - 1, j + 1)[2];
+
+                Dy.at<cv::Vec3b>(i, j)[0] = Img.at<cv::Vec3b>(i - 1, j + 1)[0] - Img.at<cv::Vec3b>(i - 1, j - 1)[0]
+                        + 2 * (Img.at<cv::Vec3b>(i, j + 1)[0] - Img.at<cv::Vec3b>(i, j - 1)[0])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[0] - Img.at<cv::Vec3b>(i + 1, j - 1)[0];
+                Dy.at<cv::Vec3b>(i, j)[1] = Img.at<cv::Vec3b>(i - 1, j + 1)[1] - Img.at<cv::Vec3b>(i - 1, j - 1)[1]
+                        + 2 * (Img.at<cv::Vec3b>(i, j + 1)[1] - Img.at<cv::Vec3b>(i, j - 1)[1])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[1] - Img.at<cv::Vec3b>(i + 1, j - 1)[1];
+                Dy.at<cv::Vec3b>(i, j)[2] = Img.at<cv::Vec3b>(i - 1, j + 1)[2] - Img.at<cv::Vec3b>(i - 1, j - 1)[2]
+                        + 2 * (Img.at<cv::Vec3b>(i, j + 1)[2] - Img.at<cv::Vec3b>(i, j - 1)[2])
+                        + Img.at<cv::Vec3b>(i + 1, j + 1)[2] - Img.at<cv::Vec3b>(i + 1, j - 1)[2];
+            }
+        }
+
+        for (int i = 0; i < rows-1; i++)
+        {
+            for (int j = 0; j < cols-1; j++)
+            {
+                tempImg.at<cv::Vec3b>(i, j)[0] = abs(Dx.at<cv::Vec3b>(i, j)[0]) + abs(Dy.at <cv::Vec3b>(i, j)[0]);
+                tempImg.at<cv::Vec3b>(i, j)[1] = abs(Dx.at<cv::Vec3b>(i, j)[1]) + abs(Dy.at <cv::Vec3b>(i, j)[1]);
+                tempImg.at<cv::Vec3b>(i, j)[2] = abs(Dx.at<cv::Vec3b>(i, j)[2]) + abs(Dy.at <cv::Vec3b>(i, j)[2]);
+            }
+        }
+
+        dst = tempImg;
+    }
+    dst = tempImg;
 }
 
 void lab4::sharp(QImage &Img){
@@ -321,14 +562,7 @@ void lab4::on_pushButton_clicked()
     switch (mytype) {
     case _RAW:
     {
-        QImage temp_img = src_img;
-
-        if(ui->img_window->isChecked()){
-            if(!ui->w_loc->document()->isEmpty() && !ui->w_wid->document()->isEmpty()){
-                this->my_window(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
-                temp_img = dst_img;
-            }
-        }
+        QImage temp_img = dst_img;
 
         if(ui->img_intensify->isChecked()){
             //intensify
@@ -337,13 +571,25 @@ void lab4::on_pushButton_clicked()
             temp_img = dst_img;
         }
 
+        if(ui->img_window->isChecked()){
+            if(!ui->w_loc->document()->isEmpty() && !ui->w_wid->document()->isEmpty()){
+                if(dst_img == src_img){
+                    this->my_window(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+                    temp_img = dst_img;
+                }else{
+                    this->my_window(ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+                    temp_img = dst_img;
+                }
+            }
+        }
+
         show_image(dst_img);
 
         break;
     }
     case _OTHER:
     {
-        cv::Mat temp = src;
+        cv::Mat temp = dst;
 
         if(ui->img_window->isChecked()){
             if(!ui->w_loc->document()->isEmpty() && !ui->w_wid->document()->isEmpty()){
@@ -354,7 +600,7 @@ void lab4::on_pushButton_clicked()
 
         if(ui->img_intensify->isChecked()){
             //intensify
-            //this->intensify(temp);
+            this->intensify(temp);
             temp = dst;
         }
 
@@ -395,6 +641,7 @@ void lab4::on_actionother_triggered()
 
     mytype = _OTHER;
     src = cv::imread(filepath.toStdString());
+    dst = src;
     this->show_image(src);
 }
 
