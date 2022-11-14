@@ -17,6 +17,9 @@
 #include <QChar>
 #include <qcolor.h>
 #include <QVector>
+#include <cstdlib>
+#include <algorithm>
+#include <QtGlobal>
 
 int *raw_latter;
 int *raw_temp_ptr;
@@ -540,10 +543,6 @@ void Browser::scale(QImage image, double cx, double cy){
             y2 = y1 + 1;
 
             float color1, color2, color3, color4;
-            QColor oldcolor1;
-            QColor oldcolor2;
-            QColor oldcolor3;
-            QColor oldcolor4;
             double u, v;
             u = x - x1;
             v = y - y1;
@@ -583,6 +582,7 @@ void Browser::scale(QImage image, double cx, double cy){
     }
     iWidth_temp = OutWidth;
     iHeight_temp = OutHeight;
+    raw_latter = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
     for(int i = 0; i < iWidth_temp * iHeight_temp; i++)
         raw_latter[i] = raw_temp_ptr[i];
     dst_img = *newImage;
@@ -663,6 +663,62 @@ void Browser::reverse(){
     dst_img = newImage;
 }
 
+void Browser::rotate(double Angle){
+    double angle = Angle*CV_PI / 180.0;
+    //构造输出图像
+    int OutHeight = round(fabs(iHeight_temp * cos(angle)) + fabs(iWidth_temp * sin(angle)));//图像高度
+    int OutWidth = round(fabs(iWidth_temp * cos(angle)) + fabs(iHeight_temp * sin(angle)));//图像宽度
+    QImage* newImage = new QImage(OutWidth, OutHeight , QImage::Format_RGB16);
+    raw_temp_ptr = (int *)malloc(sizeof(int) * OutWidth * OutHeight);
+    for(int i = 0; i < OutWidth * OutHeight; i++)
+        raw_temp_ptr[i] = 0;
+
+    cv::Mat tran1 = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0 , 0.0,-1.0,0.0, -0.5*src.cols , 0.5*src.rows , 1.0); // 将原图像坐标映射到数学笛卡尔坐标
+    cv::Mat tran2 = (cv::Mat_<double>(3,3) << cos(angle),-sin(angle),0.0 , sin(angle), cos(angle),0.0, 0.0,0.0,1.0); //数学笛卡尔坐标下顺时针旋转的变换矩阵
+    double t3[3][3] = { { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.5*dst.cols, 0.5*dst.rows ,1.0} }; // 将数学笛卡尔坐标映射到旋转后的图像坐标
+    cv::Mat tran3 = cv::Mat(3.0,3.0,CV_64FC1,t3);
+    cv::Mat T = tran1*tran2*tran3;
+    cv::Mat T_inv = T.inv(); // 求逆矩阵
+
+    for (double i = 0.0; i < OutHeight; i++){
+        for (double j = 0.0; j < OutWidth; j++){
+            cv::Mat dst_coordinate = (cv::Mat_<double>(1, 3) << j, i, 1.0);
+            cv::Mat src_coordinate = dst_coordinate * T_inv;
+            double v = src_coordinate.at<double>(0, 0);
+            double w = src_coordinate.at<double>(0, 1);
+
+            //双线性插值
+            if (int(Angle) % 90 == 0) {
+                if (v < 0)
+                    v = 0;
+                if (v > iWidth_temp - 1)
+                    v = iWidth_temp - 1;
+                if (w < 0)
+                    w = 0;
+                if (w > iHeight_temp - 1)
+                    w = iHeight_temp - 1;
+            }
+
+            if (v >= 0 && w >= 0 && v <= iWidth_temp - 1 && w <= iHeight_temp - 1){
+                int top = floor(w), bottom = ceil(w), left = floor(v), right = ceil(v);
+                double pw = w - top ;
+                double pv = v - left;
+                int color_temp = (1 - pw) * (1 - pv) * raw_latter[top * iWidth_temp + left] + (1 - pw) * pv * raw_latter[top * iWidth_temp + right]
+                        + pw * (1 - pv) * raw_latter[bottom * iWidth_temp + left] + pw * pv * raw_latter[bottom * iWidth_temp + right];
+                newImage->setPixel(j, i, qRgb(color_temp, color_temp, color_temp));
+                raw_temp_ptr[(int)(i * OutWidth + j)] = color_temp;
+            }
+        }
+    }
+    iWidth_temp = OutWidth;
+    iHeight_temp = OutHeight;
+    raw_latter = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+    for(int i = 0; i < iWidth_temp * iHeight_temp; i++)
+        raw_latter[i] = raw_temp_ptr[i];
+    dst_img = *newImage;
+    raw_temp_ptr = nullptr;
+}
+
 void Browser::clear(){
     ui->in_name_bmp->clear();
     ui->in_name_jpg->clear();
@@ -670,6 +726,7 @@ void Browser::clear(){
     ui->in_scale_y->clear();
     ui->in_wl->clear();
     ui->in_ww->clear();
+    ui->in_rotate->clear();
 
     ui->radio_intensify->setChecked(false);
     ui->radio_inverse->setChecked(false);
@@ -677,6 +734,7 @@ void Browser::clear(){
     ui->radio_save->setChecked(false);
     ui->radio_scale->setChecked(false);
     ui->radio_window->setChecked(false);
+    ui->radio_rotate->setChecked(false);
 }
 
 void Browser::on_actionraw_triggered()
@@ -708,82 +766,66 @@ void Browser::on_actionother_triggered()
 void Browser::on_btn_ok_clicked()
 {
     //ok
-    switch (mytype) {
-    case _RAW:
-    {
-        QImage temp_img = dst_img;
+    QImage temp_img = dst_img;
 
-        if(ui->radio_intensify->isChecked()){
-            //intensify
-            this->intensify();
-            //this->sharp(temp_img);
-            temp_img = dst_img;
-            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_INTENSIFY,
-                                                                      std::vector<float>()));
-        }
-
-        if(ui->radio_window->isChecked()){
-            if(!ui->in_wl->text().isEmpty() && !ui->in_ww->text().isEmpty()){
-                this->my_window(raw_latter, ui->in_ww->text().toInt(), ui->in_wl->text().toInt());
-                //this->intensify(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
-                temp_img = dst_img;
-                std::vector<float> temp_par;  ui->in_ww->text().toInt();  temp_par.push_back(ui->in_wl->text().toInt());
-                back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_WINDOW, temp_par));
-            }
-        }
-
-        if(ui->radio_scale->isChecked()){
-            if(!ui->in_scale_x->text().isEmpty() && ! ui->in_scale_y->text().isEmpty()){
-                this->scale(temp_img, ui->in_scale_x->text().toDouble(), ui->in_scale_y->text().toDouble());
-                temp_img = dst_img;
-                std::vector<float> temp_par;  temp_par.push_back(ui->in_scale_x->text().toDouble());  temp_par.push_back(ui->in_scale_y->text().toDouble());
-                back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_SCALE, temp_par));
-            }
-        }
-
-        if(ui->radio_inverse->isChecked()){
-            this->inverse();
-            temp_img = dst_img;
-            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_INVERSE,
-                                                                      std::vector<float>()));
-        }
-
-        if(ui->radio_reverse->isChecked()){
-            this->reverse();
-            temp_img = dst_img;
-            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_REVERSE,
-                                                                      std::vector<float>()));
-        }
-
-        show_image(dst_img);
-        clear();
-
-        break;
+    if(ui->radio_intensify->isChecked()){
+        //intensify
+        this->intensify();
+        //this->sharp(temp_img);
+        temp_img = dst_img;
+        back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_INTENSIFY,
+                                                                    std::vector<float>()));
     }
-    case _OTHER:
-    {
-        cv::Mat temp = dst;
 
-        if(ui->radio_window->isChecked()){
-            if(!ui->in_wl->text().isEmpty() && !ui->in_ww->text().isEmpty()){
-                this->my_window(temp, ui->in_ww->text().toInt(), ui->in_wl->text().toInt());
-                temp = dst;
-            }
+    if(ui->radio_window->isChecked()){
+        if(!ui->in_wl->text().isEmpty() && !ui->in_ww->text().isEmpty()){
+            this->my_window(raw_latter, ui->in_ww->text().toInt(), ui->in_wl->text().toInt());
+            //this->intensify(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+            temp_img = dst_img;
+            std::vector<float> temp_par;  ui->in_ww->text().toInt();  temp_par.push_back(ui->in_wl->text().toInt());
+            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_WINDOW, temp_par));
         }
-
-        if(ui->radio_intensify->isChecked()){
-            //intensify
-            this->intensify(temp);
-            temp = dst;
-        }
-
-        show_image(dst);
-        clear();
-
-        break;
     }
-    default:
-        break;
+
+    if(ui->radio_scale->isChecked()){
+        if(!ui->in_scale_x->text().isEmpty() && ! ui->in_scale_y->text().isEmpty()){
+            this->scale(temp_img, ui->in_scale_x->text().toDouble(), ui->in_scale_y->text().toDouble());
+            temp_img = dst_img;
+            std::vector<float> temp_par;  temp_par.push_back(ui->in_scale_x->text().toDouble());  temp_par.push_back(ui->in_scale_y->text().toDouble());
+            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_SCALE, temp_par));
+        }
+    }
+
+    if(ui->radio_inverse->isChecked()){
+        this->inverse();
+        temp_img = dst_img;
+        back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_INVERSE,
+                                                                    std::vector<float>()));
+    }
+
+    if(ui->radio_reverse->isChecked()){
+        this->reverse();
+        temp_img = dst_img;
+        back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_REVERSE,
+                                                                    std::vector<float>()));
+    }
+
+    if(ui->radio_rotate->isChecked()){
+        if(!ui->in_rotate->text().isEmpty()){
+            this->rotate(ui->in_rotate->text().toDouble());
+            temp_img = dst_img;
+            std::vector<float> temp_par;  temp_par.push_back(ui->in_rotate->text().toDouble());
+            back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_SCALE, temp_par));
+        }
+    }
+
+    show_image(dst_img);
+    clear();
+
+    if(back_find.size() > 7){
+        for(int i = 0; i < 3; i++){
+            back_find.erase(back_find.begin());
+        }
     }
 }
 
@@ -821,102 +863,66 @@ void Browser::on_btn_recover_clicked()
 
 void Browser::on_btn_back_clicked()
 {
-    switch (mytype) {
-    case _RAW:
-    {
-        if(back_find.size() != 0)
-            back_find.erase(back_find.end());
-        dst_img = src_img;
-        raw_latter = nullptr;
-        raw_latter = (int *)malloc(sizeof(int) * iWidth * iHeight);
-        for(int i = 0; i < iWidth * iHeight; i++){
-            raw_latter[i] = raw[i];
-        }
-        iWidth_temp = iWidth;
-        iHeight_temp = iHeight;
-        for(int i = 0; i < (int)back_find.size(); i++){
-            std::vector<float> temp_par;
-            temp_par = back_find[i].second;
-            switch (back_find[i].first) {
-            case FUNC_WINDOW:
-            {
-                this->my_window(raw_latter, temp_par[0], temp_par[1]);
-                std::cout<<back_find[i].second[0]<<"      "<<back_find[i].second[1]<<std::endl;
-                break;
-            }
-            case FUNC_INVERSE:
-            {
-                this->inverse();
-                break;
-            }
-            case FUNC_SCALE:
-            {
-                this->scale(dst_img, temp_par[0], temp_par[1]);
-                std::cout<<back_find[i].second[0]<<"      "<<back_find[i].second[1]<<std::endl;
-                break;
-            }
-            case FUNC_REVERSE:
-            {
-                this->reverse();
-                break;
-            }
-            case FUNC_INTENSIFY:
-            {
-                this->intensify();
-                break;
-            }
-            default:
-                break;
-            }
-        }
-        show_image(dst_img);
+    if(back_find.size() != 0)
+        back_find.erase(back_find.end());
+    dst_img = src_img;
+    raw_latter = nullptr;
+    raw_latter = (int *)malloc(sizeof(int) * iWidth * iHeight);
+    for(int i = 0; i < iWidth * iHeight; i++){
+        raw_latter[i] = raw[i];
     }
-    case _OTHER:
-    {
-        if(back_find_mat.size() != 0)
-            back_find_mat.erase(back_find_mat.end());
-        dst = src;
-        for(int i = 0; i < (int)back_find_mat.size(); i++){
-            switch (back_find_mat[i].first) {
-            case FUNC_WINDOW:
-            {
-                this->my_window(dst, back_find[i].second[0], back_find[i].second[1]);
-                break;
-            }
-            case FUNC_INVERSE:
-            {
-                break;
-            }
-            case FUNC_SCALE:
-            {
-                break;
-            }
-            case FUNC_REVERSE:
-            {
-                break;
-            }
-            case FUNC_INTENSIFY:
-            {
-                this->intensify(src);
-                break;
-            }
-            default:
-                break;
-            }
+    iWidth_temp = iWidth;
+    iHeight_temp = iHeight;
+    for(int i = 0; i < (int)back_find.size(); i++){
+        std::vector<float> temp_par;
+        temp_par = back_find[i].second;
+        switch (back_find[i].first) {
+        case FUNC_WINDOW:
+        {
+            this->my_window(raw_latter, temp_par[0], temp_par[1]);
+            break;
         }
-        break;
-        show_image(dst);
-        break;
+        case FUNC_INVERSE:
+        {
+            this->inverse();
+            break;
+        }
+        case FUNC_SCALE:
+        {
+            this->scale(dst_img, temp_par[0], temp_par[1]);
+            break;
+        }
+        case FUNC_REVERSE:
+        {
+            this->reverse();
+            break;
+        }
+        case FUNC_INTENSIFY:
+        {
+            this->intensify();
+            break;
+        }
+        case FUNC_ROTATE:
+        {
+            this->rotate(temp_par[0]);
+            break;
+        }
+        default:
+            break;
+        }
     }
-    default:
-        break;
-    }
+    show_image(dst_img);
 }
 
 void Browser::on_btn_save_clicked()
 {
     //save
-    this->save_img(dst_img, QString::fromStdString(ui->in_name_bmp->text().toStdString()));
+    if(!ui->in_name_bmp->text().isEmpty()){
+        this->save_img(dst_img, QString::fromStdString(ui->in_name_bmp->text().toStdString()));
+    }
+    if(!ui->in_name_jpg->text().isEmpty()){
+        this->save_img2(dst_img, QString::fromStdString(ui->in_name_bmp->text().toStdString()));
+    }
     QMessageBox::about(this, tr("提示"),tr("图片已保存"));
     ui->in_name_bmp->clear();
     ui->in_name_jpg->clear();

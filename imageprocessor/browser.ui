@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1416</width>
-    <height>900</height>
+    <width>1617</width>
+    <height>1017</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,15 +19,15 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1131</width>
-      <height>841</height>
+      <width>1301</width>
+      <height>951</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>1210</x>
+      <x>1400</x>
       <y>80</y>
       <width>72</width>
       <height>15</height>
@@ -40,7 +40,7 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>1210</x>
+      <x>1400</x>
       <y>120</y>
       <width>72</width>
       <height>15</height>
@@ -53,7 +53,7 @@
    <widget class="QRadioButton" name="radio_window">
     <property name="geometry">
      <rect>
-      <x>1150</x>
+      <x>1340</x>
       <y>30</y>
       <width>115</width>
       <height>19</height>
@@ -69,7 +69,7 @@
    <widget class="QRadioButton" name="radio_inverse">
     <property name="geometry">
      <rect>
-      <x>1150</x>
+      <x>1340</x>
       <y>170</y>
       <width>115</width>
       <height>19</height>
@@ -85,7 +85,7 @@
    <widget class="QRadioButton" name="radio_scale">
     <property name="geometry">
      <rect>
-      <x>1150</x>
+      <x>1340</x>
       <y>220</y>
       <width>115</width>
       <height>19</height>
@@ -101,7 +101,7 @@
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>1210</x>
+      <x>1400</x>
       <y>270</y>
       <width>72</width>
       <height>15</height>
@@ -114,7 +114,7 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>1210</x>
+      <x>1400</x>
       <y>310</y>
       <width>72</width>
       <height>15</height>
@@ -127,7 +127,7 @@
    <widget class="QRadioButton" name="radio_reverse">
     <property name="geometry">
      <rect>
-      <x>1150</x>
+      <x>1340</x>
       <y>360</y>
       <width>115</width>
       <height>19</height>
@@ -143,7 +143,7 @@
    <widget class="QRadioButton" name="radio_intensify">
     <property name="geometry">
      <rect>
-      <x>1150</x>
+      <x>1340</x>
       <y>410</y>
       <width>115</width>
       <height>19</height>
@@ -159,7 +159,7 @@
    <widget class="QLineEdit" name="in_ww">
     <property name="geometry">
      <rect>
-      <x>1250</x>
+      <x>1440</x>
       <y>80</y>
       <width>113</width>
       <height>21</height>
@@ -169,7 +169,7 @@
    <widget class="QLineEdit" name="in_wl">
     <property name="geometry">
      <rect>
-      <x>1250</x>
+      <x>1440</x>
       <y>120</y>
       <width>113</width>
       <height>21</height>
@@ -179,7 +179,7 @@
    <widget class="QLineEdit" name="in_scale_x">
     <property name="geometry">
      <rect>
-      <x>1250</x>
+      <x>1440</x>
       <y>270</y>
       <width>113</width>
       <height>21</height>
@@ -189,7 +189,7 @@
    <widget class="QLineEdit" name="in_scale_y">
     <property name="geometry">
      <rect>
-      <x>1250</x>
+      <x>1440</x>
       <y>310</y>
       <width>113</width>
       <height>21</height>
@@ -199,8 +199,8 @@
    <widget class="QPushButton" name="btn_ok">
     <property name="geometry">
      <rect>
-      <x>1170</x>
-      <y>450</y>
+      <x>1360</x>
+      <y>580</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -212,8 +212,8 @@
    <widget class="QPushButton" name="btn_recover">
     <property name="geometry">
      <rect>
-      <x>1160</x>
-      <y>800</y>
+      <x>1350</x>
+      <y>920</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -225,8 +225,8 @@
    <widget class="QPushButton" name="btn_back">
     <property name="geometry">
      <rect>
-      <x>1310</x>
-      <y>450</y>
+      <x>1500</x>
+      <y>580</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -238,8 +238,8 @@
    <widget class="QRadioButton" name="radio_save">
     <property name="geometry">
      <rect>
-      <x>1150</x>
-      <y>550</y>
+      <x>1340</x>
+      <y>670</y>
       <width>115</width>
       <height>19</height>
      </rect>
@@ -254,8 +254,8 @@
    <widget class="QLineEdit" name="in_name_bmp">
     <property name="geometry">
      <rect>
-      <x>1200</x>
-      <y>610</y>
+      <x>1390</x>
+      <y>730</y>
       <width>113</width>
       <height>21</height>
      </rect>
@@ -264,8 +264,8 @@
    <widget class="QLineEdit" name="in_name_jpg">
     <property name="geometry">
      <rect>
-      <x>1200</x>
-      <y>660</y>
+      <x>1390</x>
+      <y>780</y>
       <width>113</width>
       <height>21</height>
      </rect>
@@ -274,8 +274,8 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>1320</x>
-      <y>610</y>
+      <x>1510</x>
+      <y>730</y>
       <width>72</width>
       <height>15</height>
      </rect>
@@ -287,8 +287,8 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>1320</x>
-      <y>660</y>
+      <x>1510</x>
+      <y>780</y>
       <width>72</width>
       <height>15</height>
      </rect>
@@ -300,8 +300,8 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>1150</x>
-      <y>520</y>
+      <x>1340</x>
+      <y>640</y>
       <width>251</width>
       <height>16</height>
      </rect>
@@ -313,8 +313,8 @@
    <widget class="QPushButton" name="btn_save">
     <property name="geometry">
      <rect>
-      <x>1310</x>
-      <y>720</y>
+      <x>1500</x>
+      <y>840</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -323,13 +323,52 @@
      <string>保存</string>
     </property>
    </widget>
+   <widget class="QRadioButton" name="radio_rotate">
+    <property name="geometry">
+     <rect>
+      <x>1340</x>
+      <y>460</y>
+      <width>115</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>图像旋转</string>
+    </property>
+    <property name="autoExclusive">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>1400</x>
+      <y>510</y>
+      <width>72</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>角度</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="in_rotate">
+    <property name="geometry">
+     <rect>
+      <x>1440</x>
+      <y>510</y>
+      <width>113</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1416</width>
+     <width>1617</width>
      <height>26</height>
     </rect>
    </property>
@@ -338,7 +377,6 @@
      <string>菜单</string>
     </property>
     <addaction name="actionraw"/>
-    <addaction name="actionother"/>
    </widget>
    <addaction name="menu"/>
   </widget>

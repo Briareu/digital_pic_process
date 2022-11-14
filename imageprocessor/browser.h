@@ -55,6 +55,7 @@ public:
     void inverse();
     void reverse(QImage image);
     void reverse();
+    void rotate(double Angle);
 
     void clear();
 
