@@ -1,5 +1,5 @@
-#ifndef LAB4_H
-#define LAB4_H
+#ifndef BROWSER_H
+#define BROWSER_H
 
 #include <QMainWindow>
 
@@ -11,18 +11,22 @@
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include "picType.h"
+#include <vector>
+#include "functiontype.h"
+
 
 namespace Ui {
-class lab4;
+class Browser;
 }
 
-class lab4 : public QMainWindow
+class Browser : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit lab4(QWidget *parent = nullptr);
-    ~lab4();
+    explicit Browser(QWidget *parent = nullptr);
+    ~Browser();
+
 
     QImage Matrix2QImage(int *data, int width, int height);
     void show_image(QImage Img);
@@ -31,7 +35,6 @@ public:
     void show_image(const cv::Mat &image);
 
     void getbit();
-    int convert_hex_inv(size_t count, const uint8_t *src);
 
     void my_window(cv::Mat &src, int ww, int wl);
     int convert(int ww, int wl, int tar);
@@ -41,11 +44,19 @@ public:
     int convert2(int ww, int wl, int tar);
 
     void intensify(QImage &Img);
-    void intensify(QImage &Img, int ww, int wl);
+    void intensify();
     void intensify(cv::Mat &Img);
-    void sharp(QImage &Img);
 
     void save_img(QImage &Img, QString name);
+    void save_img2(QImage &Img, QString name);
+
+    void scale(QImage image, double cx, double cy);
+    void inverse(QImage image);
+    void inverse();
+    void reverse(QImage image);
+    void reverse();
+
+    void clear();
 
     QString filepath;
 
@@ -59,22 +70,31 @@ public:
     int iWidth;
     picType mytype;
 
+    int iHeight_temp;
+    int iWidth_temp;
+
     int *raw;
-    //int *raw_p;
+    std::vector<std::pair<funcType, std::vector<float>>> back_find;
+    std::vector<std::pair<funcType, std::vector<float>>> back_find_mat;
+
+    std::vector<QImage> back_image;
+    bool isArray = true;
 
 private slots:
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
     void on_actionraw_triggered();
 
     void on_actionother_triggered();
 
-    void on_pushButton_3_clicked();
+    void on_btn_ok_clicked();
+
+    void on_btn_recover_clicked();
+
+    void on_btn_back_clicked();
+
+    void on_btn_save_clicked();
 
 private:
-    Ui::lab4 *ui;
+    Ui::Browser *ui;
 };
 
-#endif // LAB4_H
+#endif // BROWSER_H

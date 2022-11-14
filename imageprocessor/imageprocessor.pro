@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     angle.cpp \
+    browser.cpp \
     input.cpp \
     lab3.cpp \
     lab4.cpp \
@@ -20,6 +21,8 @@ SOURCES += \
 
 HEADERS += \
     angle.h \
+    browser.h \
+    functiontype.h \
     input.h \
     lab3.h \
     lab4.h \
@@ -30,6 +33,7 @@ HEADERS += \
 
 FORMS += \
     angle.ui \
+    browser.ui \
     input.ui \
     lab3.ui \
     lab4.ui \

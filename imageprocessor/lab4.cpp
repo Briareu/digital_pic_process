@@ -200,13 +200,13 @@ int lab4::convert(int ww, int wl, int tar){
     return res;
 }
 
-void lab4::my_window(QImage &src, int ww, int wl){
-    QImage tempImg = QImage(src.width(), src.height(), QImage::Format_RGB16);
+void lab4::my_window(QImage &src_img, int ww, int wl){
+    QImage tempImg = QImage(src_img.width(), src_img.height(), QImage::Format_RGB16);
 
     int num = 0;
-    for (int i = 0; i < src.height(); ++i)
+    for (int i = 0; i < src_img.height(); ++i)
     {
-        for (int j = 0; j < src.width(); ++j)
+        for (int j = 0; j < src_img.width(); ++j)
         {
             int temp = raw[num];
             //tempImg.setPixel(j, i, temp);
@@ -220,13 +220,13 @@ void lab4::my_window(QImage &src, int ww, int wl){
     dst_img = tempImg;
 }
 
-void lab4::my_window(int ww, int wl){
-    QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
+void lab4::my_window(int *raw_p, int ww, int wl){
+    QImage tempImg = QImage(src_img.width(), src_img.height(), QImage::Format_RGB16);
 
     int num = 0;
-    for (int i = 0; i < iHeight; ++i)
+    for (int i = 0; i < src_img.height(); ++i)
     {
-        for (int j = 0; j < iWidth; ++j)
+        for (int j = 0; j < src_img.width(); ++j)
         {
             int temp = raw_p[num];
             //tempImg.setPixel(j, i, temp);
@@ -312,7 +312,9 @@ void lab4::intensify(QImage &Img){
 void lab4::intensify(QImage &Img){
     QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
 
+    raw_p = nullptr;
     raw_p = (int *)malloc(sizeof(int) * iWidth * iHeight);
+    //temp = (int *)malloc(sizeof(int) * iWidth * iHeight);
 
     for (int i = 1; i < iHeight - 1; i++)
     {
@@ -335,7 +337,64 @@ void lab4::intensify(QImage &Img){
 
             //int val = LimitValue(sqrt(GX*GX + GY*GY) + 0.5);
 
-            raw_p[i*iWidth + j] = sqrt(GX*GX + GY*GY);
+            raw_p[i*iWidth + j] = sqrt(GX*GX + GY*GY) + raw[i*iWidth + j];
+            //temp[i*iWidth + j] = sqrt(GX*GX + GY*GY) + imageKernel[4];
+        }
+    }
+
+    tempImg = this->Matrix2QImage(raw_p, iWidth, iHeight);
+    dst_img = tempImg;
+}
+
+void lab4::intensify(QImage &Img, int ww, int wl){
+    QImage tempImg = QImage(iWidth, iHeight, QImage::Format_RGB16);
+
+    raw_p = nullptr;
+    raw_p = (int *)malloc(sizeof(int) * iWidth * iHeight);
+    //temp = (int *)malloc(sizeof(int) * iWidth * iHeight);
+
+    int num1 = 0;
+    for (int i = 1; i < iHeight - 1; i++)
+    {
+        for (int j = 1; j < iWidth - 1; j++)
+        {
+            unsigned char imageKernel[9] = { 0 };
+            imageKernel[0] = raw[(i - 1)*iWidth + j - 1];
+            imageKernel[1] = raw[(i - 1)*iWidth + j];
+            imageKernel[2] = raw[(i - 1)*iWidth + j + 1];
+            imageKernel[3] = raw[(i)*iWidth + j - 1];
+            imageKernel[4] = raw[(i)*iWidth + j];
+            imageKernel[5] = raw[(i)*iWidth + j + 1];
+            imageKernel[6] = raw[(i + 1)*iWidth + j - 1];
+            imageKernel[7] = raw[(i + 1)*iWidth + j];
+            imageKernel[8] = raw[(i + 1)*iWidth + j + 1];
+
+            //化简后结果   这里使用了 1,1.414,1 的模板（各向同性Sobel算子），与 1,2,1的模板区别不是很大
+            float GX = imageKernel[2] - imageKernel[0] + (imageKernel[5] - imageKernel[3]) * 1.414 + imageKernel[8] - imageKernel[6];
+            float GY = imageKernel[0] + imageKernel[2] + (imageKernel[1] - imageKernel[7]) * 1.414 - imageKernel[6] - imageKernel[8];
+
+            //int val = LimitValue(sqrt(GX*GX + GY*GY) + 0.5);
+
+            raw_p[i*iWidth + j] = sqrt(GX*GX + GY*GY) + imageKernel[4];
+            if(num1 < 100){
+                std::cout<<raw_p[i*iWidth + j]<<std::endl;
+                num1++;
+            }
+            //temp[i*iWidth + j] = sqrt(GX*GX + GY*GY) + imageKernel[4];
+        }
+    }
+
+    int num = 0;
+    for (int i = 0; i < src_img.height(); ++i)
+    {
+        for (int j = 0; j < src_img.width(); ++j)
+        {
+            int temp = raw_p[num];
+            //tempImg.setPixel(j, i, temp);
+            temp = convert(ww, wl, temp);
+            raw_p[num] = temp;
+            num++;
+            //tempImg.setPixel(i, j, qRgba64(4000, 4000, 4000, 4000));
         }
     }
 
@@ -577,7 +636,8 @@ void lab4::on_pushButton_clicked()
                     this->my_window(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
                     temp_img = dst_img;
                 }else{
-                    this->my_window(ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+                    this->my_window(raw_p, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
+                    //this->intensify(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
                     temp_img = dst_img;
                 }
             }
