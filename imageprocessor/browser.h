@@ -74,12 +74,16 @@ public:
     int iHeight_temp;
     int iWidth_temp;
 
+    int iHeight_window;
+    int iWidth_window;
+
     int *raw;
     std::vector<std::pair<funcType, std::vector<float>>> back_find;
     std::vector<std::pair<funcType, std::vector<float>>> back_find_mat;
 
     std::vector<QImage> back_image;
     bool isArray = true;
+    bool isWindowed = false;
 
 private slots:
     void on_actionraw_triggered();

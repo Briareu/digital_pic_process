@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     //QString filepath = QFileDialog::getOpenFileName(nullptr, QStringLiteral("选择图片"), ".", "*.bmp;*.png;*.jpg");
     Browser *p = new Browser();
+    p->setWindowTitle("浏览器");
     p->show();
     return a.exec();
 }

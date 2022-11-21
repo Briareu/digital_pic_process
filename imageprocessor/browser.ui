@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1617</width>
+    <width>1797</width>
     <height>1017</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1301</width>
+      <width>1481</width>
       <height>951</height>
      </rect>
     </property>
@@ -27,7 +27,7 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>1400</x>
+      <x>1580</x>
       <y>80</y>
       <width>72</width>
       <height>15</height>
@@ -40,7 +40,7 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>1400</x>
+      <x>1580</x>
       <y>120</y>
       <width>72</width>
       <height>15</height>
@@ -53,7 +53,7 @@
    <widget class="QRadioButton" name="radio_window">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>30</y>
       <width>115</width>
       <height>19</height>
@@ -69,7 +69,7 @@
    <widget class="QRadioButton" name="radio_inverse">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>170</y>
       <width>115</width>
       <height>19</height>
@@ -85,7 +85,7 @@
    <widget class="QRadioButton" name="radio_scale">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>220</y>
       <width>115</width>
       <height>19</height>
@@ -101,7 +101,7 @@
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>1400</x>
+      <x>1580</x>
       <y>270</y>
       <width>72</width>
       <height>15</height>
@@ -114,7 +114,7 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>1400</x>
+      <x>1580</x>
       <y>310</y>
       <width>72</width>
       <height>15</height>
@@ -127,7 +127,7 @@
    <widget class="QRadioButton" name="radio_reverse">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>360</y>
       <width>115</width>
       <height>19</height>
@@ -143,7 +143,7 @@
    <widget class="QRadioButton" name="radio_intensify">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>410</y>
       <width>115</width>
       <height>19</height>
@@ -159,7 +159,7 @@
    <widget class="QLineEdit" name="in_ww">
     <property name="geometry">
      <rect>
-      <x>1440</x>
+      <x>1620</x>
       <y>80</y>
       <width>113</width>
       <height>21</height>
@@ -169,7 +169,7 @@
    <widget class="QLineEdit" name="in_wl">
     <property name="geometry">
      <rect>
-      <x>1440</x>
+      <x>1620</x>
       <y>120</y>
       <width>113</width>
       <height>21</height>
@@ -179,7 +179,7 @@
    <widget class="QLineEdit" name="in_scale_x">
     <property name="geometry">
      <rect>
-      <x>1440</x>
+      <x>1620</x>
       <y>270</y>
       <width>113</width>
       <height>21</height>
@@ -189,7 +189,7 @@
    <widget class="QLineEdit" name="in_scale_y">
     <property name="geometry">
      <rect>
-      <x>1440</x>
+      <x>1620</x>
       <y>310</y>
       <width>113</width>
       <height>21</height>
@@ -199,7 +199,7 @@
    <widget class="QPushButton" name="btn_ok">
     <property name="geometry">
      <rect>
-      <x>1360</x>
+      <x>1540</x>
       <y>580</y>
       <width>93</width>
       <height>28</height>
@@ -212,7 +212,7 @@
    <widget class="QPushButton" name="btn_recover">
     <property name="geometry">
      <rect>
-      <x>1350</x>
+      <x>1530</x>
       <y>920</y>
       <width>93</width>
       <height>28</height>
@@ -225,7 +225,7 @@
    <widget class="QPushButton" name="btn_back">
     <property name="geometry">
      <rect>
-      <x>1500</x>
+      <x>1680</x>
       <y>580</y>
       <width>93</width>
       <height>28</height>
@@ -238,7 +238,7 @@
    <widget class="QRadioButton" name="radio_save">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>670</y>
       <width>115</width>
       <height>19</height>
@@ -254,7 +254,7 @@
    <widget class="QLineEdit" name="in_name_bmp">
     <property name="geometry">
      <rect>
-      <x>1390</x>
+      <x>1570</x>
       <y>730</y>
       <width>113</width>
       <height>21</height>
@@ -264,7 +264,7 @@
    <widget class="QLineEdit" name="in_name_jpg">
     <property name="geometry">
      <rect>
-      <x>1390</x>
+      <x>1570</x>
       <y>780</y>
       <width>113</width>
       <height>21</height>
@@ -274,7 +274,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>1510</x>
+      <x>1690</x>
       <y>730</y>
       <width>72</width>
       <height>15</height>
@@ -287,7 +287,7 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>1510</x>
+      <x>1690</x>
       <y>780</y>
       <width>72</width>
       <height>15</height>
@@ -300,7 +300,7 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>640</y>
       <width>251</width>
       <height>16</height>
@@ -313,7 +313,7 @@
    <widget class="QPushButton" name="btn_save">
     <property name="geometry">
      <rect>
-      <x>1500</x>
+      <x>1680</x>
       <y>840</y>
       <width>93</width>
       <height>28</height>
@@ -326,7 +326,7 @@
    <widget class="QRadioButton" name="radio_rotate">
     <property name="geometry">
      <rect>
-      <x>1340</x>
+      <x>1520</x>
       <y>460</y>
       <width>115</width>
       <height>19</height>
@@ -342,7 +342,7 @@
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>1400</x>
+      <x>1580</x>
       <y>510</y>
       <width>72</width>
       <height>15</height>
@@ -355,7 +355,7 @@
    <widget class="QLineEdit" name="in_rotate">
     <property name="geometry">
      <rect>
-      <x>1440</x>
+      <x>1620</x>
       <y>510</y>
       <width>113</width>
       <height>21</height>
@@ -368,7 +368,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1617</width>
+     <width>1797</width>
      <height>26</height>
     </rect>
    </property>

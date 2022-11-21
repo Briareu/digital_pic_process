@@ -20,9 +20,11 @@
 #include <cstdlib>
 #include <algorithm>
 #include <QtGlobal>
+#include <QMessageBox>
 
 int *raw_latter;
 int *raw_temp_ptr;
+int *raw_window;
 
 Browser::Browser(QWidget *parent) :
     QMainWindow(parent),
@@ -133,6 +135,7 @@ void Browser::getbit(){
     t2 *= 256;
     iWidth = t1 + t2;
     iWidth_temp = t1 + t2;
+    iWidth_window = t1 + t2;
 
     fread(data, 1, 4, pf);
     t1 = data[0] - '0' + 48;
@@ -140,7 +143,9 @@ void Browser::getbit(){
     t2 *= 256;
     iHeight = t1 + t2;
     iHeight_temp = t1 + t2;
+    iHeight_window = t1 + t2;
     raw_latter = (int *)malloc(sizeof(int) * iWidth * iHeight);
+    raw_window = (int *)malloc(sizeof(int) * iWidth * iHeight);
 
     unsigned short *pushRawdata2;
     pushRawdata2 = (unsigned short *)malloc(sizeof(unsigned short) * iWidth * iHeight);
@@ -164,6 +169,7 @@ void Browser::getbit(){
         t2 *= 256;
         raw[i] = t1 + t2;
         raw_latter[i] = t1 + t2;
+        raw_window[i] = t1 + t2;
         //std::cout<<t1 + t2<<std::endl;
     }
 
@@ -240,7 +246,7 @@ void Browser::my_window(int *raw_p, int ww, int wl){
     {
         for (int j = 0; j < iWidth_temp; ++j)
         {
-            int temp = raw_p[num];
+            int temp = raw_window[num];
             //tempImg.setPixel(j, i, temp);
             temp = convert(ww, wl, temp);
             tempImg.setPixelColor(j, i, qRgb(temp, temp, temp));
@@ -521,7 +527,7 @@ void Browser::scale(QImage image, double cx, double cy){
     unsigned int OutWidth = (unsigned int)(iWidth_temp * cx +0.5);
     unsigned int OutHeight = (unsigned int)(iHeight_temp * cy +0.5 );
     QImage* newImage = new QImage(OutWidth, OutHeight , QImage::Format_RGB16);
-    raw_temp_ptr = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+    raw_temp_ptr = (int *)malloc(sizeof(int) * OutWidth * OutHeight);
 
     double  x = 0;
     double  y = 0;
@@ -673,9 +679,9 @@ void Browser::rotate(double Angle){
     for(int i = 0; i < OutWidth * OutHeight; i++)
         raw_temp_ptr[i] = 0;
 
-    cv::Mat tran1 = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0 , 0.0,-1.0,0.0, -0.5*src.cols , 0.5*src.rows , 1.0); // 将原图像坐标映射到数学笛卡尔坐标
+    cv::Mat tran1 = (cv::Mat_<double>(3,3) << 1.0,0.0,0.0 , 0.0,-1.0,0.0, -0.5*iWidth_temp , 0.5*iHeight_temp , 1.0); // 将原图像坐标映射到数学笛卡尔坐标
     cv::Mat tran2 = (cv::Mat_<double>(3,3) << cos(angle),-sin(angle),0.0 , sin(angle), cos(angle),0.0, 0.0,0.0,1.0); //数学笛卡尔坐标下顺时针旋转的变换矩阵
-    double t3[3][3] = { { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.5*dst.cols, 0.5*dst.rows ,1.0} }; // 将数学笛卡尔坐标映射到旋转后的图像坐标
+    double t3[3][3] = { { 1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.5*OutWidth, 0.5*OutHeight ,1.0} }; // 将数学笛卡尔坐标映射到旋转后的图像坐标
     cv::Mat tran3 = cv::Mat(3.0,3.0,CV_64FC1,t3);
     cv::Mat T = tran1*tran2*tran3;
     cv::Mat T_inv = T.inv(); // 求逆矩阵
@@ -779,11 +785,27 @@ void Browser::on_btn_ok_clicked()
 
     if(ui->radio_window->isChecked()){
         if(!ui->in_wl->text().isEmpty() && !ui->in_ww->text().isEmpty()){
+            if(!isWindowed)
+            {
+                isWindowed = true;
+                iWidth_window = iWidth_temp;
+                iHeight_window = iHeight_temp;
+                raw_window = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+                for(int i = 0; i < iWidth_temp * iHeight_temp; i++)
+                    raw_window[i] = raw_latter[i];
+            }else{
+                iHeight_temp = iHeight_window;
+                iWidth_temp = iWidth_window;
+
+                raw_latter = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+            }
             this->my_window(raw_latter, ui->in_ww->text().toInt(), ui->in_wl->text().toInt());
             //this->intensify(temp_img, ui->w_wid->toPlainText().toInt(), ui->w_loc->toPlainText().toInt());
             temp_img = dst_img;
-            std::vector<float> temp_par;  ui->in_ww->text().toInt();  temp_par.push_back(ui->in_wl->text().toInt());
+            std::vector<float> temp_par;  temp_par.push_back(ui->in_ww->text().toInt());  temp_par.push_back(ui->in_wl->text().toInt());
             back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_WINDOW, temp_par));
+        }else{
+            QMessageBox::warning(this, tr("WARNING"),  tr("         请填写必要的参数！         "),  QMessageBox::Cancel,  QMessageBox::Cancel);
         }
     }
 
@@ -793,6 +815,8 @@ void Browser::on_btn_ok_clicked()
             temp_img = dst_img;
             std::vector<float> temp_par;  temp_par.push_back(ui->in_scale_x->text().toDouble());  temp_par.push_back(ui->in_scale_y->text().toDouble());
             back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_SCALE, temp_par));
+        }else{
+            QMessageBox::warning(this, tr("WARNING"),  tr("         请填写必要的参数！         "),  QMessageBox::Cancel,  QMessageBox::Cancel);
         }
     }
 
@@ -816,17 +840,19 @@ void Browser::on_btn_ok_clicked()
             temp_img = dst_img;
             std::vector<float> temp_par;  temp_par.push_back(ui->in_rotate->text().toDouble());
             back_find.push_back(std::pair<funcType, std::vector<float>>(FUNC_SCALE, temp_par));
+        }else{
+            QMessageBox::warning(this, tr("WARNING"),  tr("         请填写必要的参数！         "),  QMessageBox::Cancel,  QMessageBox::Cancel);
         }
     }
 
     show_image(dst_img);
     clear();
 
-    if(back_find.size() > 7){
+    /*if(back_find.size() > 7){
         for(int i = 0; i < 3; i++){
             back_find.erase(back_find.begin());
         }
-    }
+    }*/
 }
 
 void Browser::on_btn_recover_clicked()
@@ -849,16 +875,23 @@ void Browser::on_btn_recover_clicked()
         show_image(src_img);
         raw_latter = nullptr;
         raw_latter = (int *)malloc(sizeof(int) * iWidth * iHeight);
+        raw_window = nullptr;
+        raw_window = (int *)malloc(sizeof(int) * iWidth * iHeight);
         for(int i = 0; i < iWidth * iHeight; i++){
             raw_latter[i] = raw[i];
+            raw_window[i] = raw[i];
         }
         iWidth_temp = iWidth;
         iHeight_temp = iHeight;
+        iWidth_window = iWidth;
+        iHeight_window = iHeight;
     }else{
         show_image(src);
     }
     back_find.clear();
     back_find_mat.clear();
+
+    isWindowed = false;
 }
 
 void Browser::on_btn_back_clicked()
@@ -868,18 +901,39 @@ void Browser::on_btn_back_clicked()
     dst_img = src_img;
     raw_latter = nullptr;
     raw_latter = (int *)malloc(sizeof(int) * iWidth * iHeight);
+    raw_window = nullptr;
+    raw_window = (int *)malloc(sizeof(int) * iWidth * iHeight);
     for(int i = 0; i < iWidth * iHeight; i++){
         raw_latter[i] = raw[i];
+        raw_window[i] = raw[i];
     }
     iWidth_temp = iWidth;
     iHeight_temp = iHeight;
+    iWidth_window = iWidth;
+    iHeight_window = iHeight;
+    isWindowed = false;
+
     for(int i = 0; i < (int)back_find.size(); i++){
         std::vector<float> temp_par;
         temp_par = back_find[i].second;
         switch (back_find[i].first) {
         case FUNC_WINDOW:
         {
-            this->my_window(raw_latter, temp_par[0], temp_par[1]);
+            if(!isWindowed)
+            {
+                isWindowed = true;
+                iWidth_window = iWidth_temp;
+                iHeight_window = iHeight_temp;
+                raw_window = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+                for(int i = 0; i < iWidth_temp * iHeight_temp; i++)
+                    raw_window[i] = raw_latter[i];
+            }else{
+                iHeight_temp = iHeight_window;
+                iWidth_temp = iWidth_window;
+
+                raw_latter = (int *)malloc(sizeof(int) * iWidth_temp * iHeight_temp);
+            }
+            this->my_window(raw_latter, (int)temp_par[0], (int)temp_par[1]);
             break;
         }
         case FUNC_INVERSE:
@@ -921,7 +975,7 @@ void Browser::on_btn_save_clicked()
         this->save_img(dst_img, QString::fromStdString(ui->in_name_bmp->text().toStdString()));
     }
     if(!ui->in_name_jpg->text().isEmpty()){
-        this->save_img2(dst_img, QString::fromStdString(ui->in_name_bmp->text().toStdString()));
+        this->save_img2(dst_img, QString::fromStdString(ui->in_name_jpg->text().toStdString()));
     }
     QMessageBox::about(this, tr("提示"),tr("图片已保存"));
     ui->in_name_bmp->clear();
